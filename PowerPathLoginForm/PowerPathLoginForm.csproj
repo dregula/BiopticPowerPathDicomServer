@@ -112,6 +112,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\BPServer\ConnectionHelpers.cs">
+      <Link>ConnectionHelpers.cs</Link>
+    </Compile>
     <Compile Include="PowerPathLoginForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -144,12 +147,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PowerPathDbConnect\PowerPathDbConnect.csproj">
-      <Project>{54470d2c-0420-44de-b35b-3d4adfd0e559}</Project>
-      <Name>PowerPathDbConnect</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

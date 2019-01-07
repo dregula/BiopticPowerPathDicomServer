@@ -82,12 +82,17 @@ namespace BiopticPowerPathDicomServer
             get { return builder; }
             set { builder = value; }
         }
-
+        public SqlConnectionStringBuilder Copy()
+        {
+            return new SqlConnectionStringBuilder(builder.ConnectionString);
+        }
 
         public string ConnectionString
         {
             get
             {
+
+
                 return builder.ConnectionString;
             }
         }

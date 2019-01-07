@@ -12,13 +12,14 @@ using ReactiveUI;
 using BiopticPowerPathDicomServer.ViewModels;
 using System.Threading.Tasks;
 
+
 namespace BiopticPowerPathDicomServer
 {
     public partial class PPLoginForm : Form, IViewFor<PPLoginViewModel>
     {
         private static ILog Log = LogManager.GetLogger("PPLoginForm");
 
-        private PowerPathDbConnect ppdbconnect;
+        private SqlConnectionStringBuilder builder;
 
         #region "Component variables (leave alone!)"
         private System.ComponentModel.Container components = null;
@@ -54,19 +55,15 @@ namespace BiopticPowerPathDicomServer
         }
         # endregion
 
-        public PPLoginForm()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Builder"></param>
+        public PPLoginForm(SqlConnectionStringBuilder Builder)
         {
-            ppdbconnect = new PowerPathDbConnect();
+            builder = new SqlConnectionStringBuilder(Builder.ConnectionString);
             VM = new PPLoginViewModel();
-            VM.ppDbConnect = ppdbconnect;
-            InitializeAndBind();
-        }
-
-        public PPLoginForm(PowerPathDbConnect PPDbconnect)
-        {
-            ppdbconnect = PPDbconnect;
-            VM = new PPLoginViewModel();
-            VM.ppDbConnect = ppdbconnect;
+            VM.Builder = builder;
             InitializeAndBind();
         }
 
@@ -103,6 +100,24 @@ namespace BiopticPowerPathDicomServer
             }
             base.Dispose(disposing);
         }
+//TODO: refactor this into form control validation
+        private string FeedbackFromCheckConnectionBuilder()
+        {
+            if (this.cbServer.Text.Length < 1)
+            {
+                return @"Please enter the database server name or IP address!";
+            }
+            if (this.tbUserNameInput.Text.Length < 1)
+            {
+                return @"Username must be entered!";
+            }
+            if (this.tbPasswordInput.Text.Length < 1)
+            {
+                return @"Password must be entered!";
+            }
+            return "";
+        }
+
 
         #region Windows Form Designer generated code
         /// <summary>
@@ -343,7 +358,7 @@ namespace BiopticPowerPathDicomServer
         //REFACTOR: into reactive binding
         private void bntOK_Click(object sender, EventArgs e)
         {
-            string strTestConnectionValues = ppdbconnect.FeedbackFromCheckConnectionBuilder();
+            string strTestConnectionValues = FeedbackFromCheckConnectionBuilder();
             if (strTestConnectionValues.Length > 0)
             {
                 Log.Info(strTestConnectionValues);
@@ -355,10 +370,10 @@ namespace BiopticPowerPathDicomServer
                 Log.Info(@"Attempting connection to database.");
                 this.tbFeedback.Text = @"Attempting connection to database.";
             }
-            //DEBUG!            Task<string> taskFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(ppdbconnect.ConnectionString);
+            //DEBUG!            Task<string> taskFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(builder.ConnectionString);
             //            taskFeedbackFromTestPowerPathConnect.Wait();
             //           string strFeedbackFromTestPowerPathConnect = taskFeedbackFromTestPowerPathConnect.Result.ToString();
-            string strFeedbackFromTestPowerPathConnect = ppdbconnect.FeedbackFromTestPowerPathConnect();
+            string strFeedbackFromTestPowerPathConnect = ConnectionHelpers.FeedbackFromTestDatabaseConnect(builder);
             if (strFeedbackFromTestPowerPathConnect.Length > 0)
             {
                 this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;

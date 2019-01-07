@@ -21,62 +21,66 @@ namespace BiopticPowerPathDicomServer.ViewModels
             }
         } */
 
-private PowerPathDbConnect ppdbconnect;
-        public PowerPathDbConnect ppDbConnect
+        private SqlConnectionStringBuilder builder;
+        public SqlConnectionStringBuilder Builder
         {
             get
             {
-                return ppdbconnect;
+                return builder;
             }
             set
             {
-                ppdbconnect = value;
+                builder = value;
             }
         }
+//public SqlConnectionStringBuilder CopyOfBuilder()
+//{
+//    return new SqlConnectionStringBuilder(builder.ConnectionString);
+//}
 
         public string ConnectionString
         {
-            get { return ppdbconnect.ConnectionString; }
+            get { return builder.ConnectionString; }
         }
         public string DataSource
         {
-            get { return ppdbconnect.Server; }
+            get { return builder.DataSource; }
             set
             {
                 string ds = "";
                 this.RaiseAndSetIfChanged(ref ds, value);
-                ppdbconnect.Server = ds;
+                builder.DataSource = ds;
             }
         }
         public string UserID
         {
-            get { return ppdbconnect.UserID; }
+            get { return builder.UserID; }
             set
             {
                 string uid = "";
                 this.RaiseAndSetIfChanged(ref uid, value);
-                ppdbconnect.UserID = uid;
+                builder.UserID = uid;
             }
         }
         public string Password
         {
-            get { return ppdbconnect.Password; }
+            get { return builder.Password; }
             set
             {
                 string p = "";
                 this.RaiseAndSetIfChanged(ref p, value);
-                ppdbconnect.Password = p;
+                builder.Password = p;
             }
         }
 
         public string InitialCatalog
         {
-            get { return ppdbconnect.Database; }
+            get { return builder.InitialCatalog; }
             set
             {
                 string ic = "";
                 this.RaiseAndSetIfChanged(ref ic, value);
-                ppdbconnect.Database = ic;
+                builder.InitialCatalog = ic;
             }
         }
 

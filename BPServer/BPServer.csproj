@@ -40,7 +40,7 @@
       <HintPath>..\packages\Common.Logging.Core.3.4.1\lib\net40\Common.Logging.Core.dll</HintPath>
     </Reference>
     <Reference Include="DicomObjects.NET.8.40">
-      <HintPath>..\..\..\..\DicomObjects.NET V8\Lib\DicomObjects.NET.8.40.dll</HintPath>
+      <HintPath>..\..\..\..\Documents\DicomObjects.NET V8\Lib\DicomObjects.NET.8.40.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BPServer.cs" />
+    <Compile Include="ConnectionHelpers.cs" />
     <Compile Include="DicomServerConfiguration.cs" />
     <Compile Include="DicomServerEvents.cs" />
     <Compile Include="ExamsScheduled.cs" />
@@ -64,12 +65,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PowerPathDbConnect\PowerPathDbConnect.csproj">
-      <Project>{54470d2c-0420-44de-b35b-3d4adfd0e559}</Project>
-      <Name>PowerPathDbConnect</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

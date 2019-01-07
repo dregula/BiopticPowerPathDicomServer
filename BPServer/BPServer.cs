@@ -16,16 +16,16 @@ namespace BiopticPowerPathDicomServer
         private static ILog Log = LogManager.GetLogger("BPServer");
 
         private DicomServerConfiguration serverconfig;
-        private PowerPathDbConnect powerpathdbconnect;
+        private SqlConnectionStringBuilder builder;
 
 
         //TODO: decide how to create and use the dbconnection to Powerpath
         public BPServer() { }   //MOCK: just to compile
 
-        public BPServer(DicomServerConfiguration serverConfig, PowerPathDbConnect powerpathDbConnect)
+        public BPServer(DicomServerConfiguration serverConfig, SqlConnectionStringBuilder Builder)
         {
             this.serverconfig = serverConfig ?? throw new ArgumentNullException(nameof(serverConfig));
-            powerpathdbconnect = powerpathDbConnect ?? throw new ArgumentNullException(nameof(powerpathdbconnect));
+            builder = Builder ?? throw new ArgumentNullException(nameof(builder));
         }
 
         /// <summary>
