@@ -7,8 +7,28 @@ using Microsoft.Win32;
 
 namespace BiopticPowerPathDicomServer
 {
-    public partial class ServerConfiguration
+    interface DicomServerConfigurationInterface
     {
+        int Portnumber { get; set; }
+        string IpAddress { get; set; }
+        string IpAddressFamily { get; set; }
+    }
+
+    public partial class DicomServerConfiguration : DicomServerConfigurationInterface
+    {
+        private RegistryKey rkDicomObject;
+
+        public DicomServerConfiguration()
+        {
+            using (RegistryKey rkHive = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default))
+            {
+                rkDicomObject = rkHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP");
+                if (rkDicomObject == null)
+                {
+                    rkDicomObject = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default).OpenSubKey(@"Software\Stanford\BiopticVisionSCP");
+                }
+            }
+        }
         // Port:
         //     The TCP port on which to receive connections
         //

@@ -10,62 +10,73 @@ namespace BiopticPowerPathDicomServer.ViewModels
 {
     public class  PPLoginViewModel : ReactiveObject
     {
-        private ServerConfiguration serverconfig;
-        public ServerConfiguration ServerConfig
+        //TODO: this belongs somewhere
+        //TODO: REFACTOR db can be opened, but without an initial catalog 
+/*        var databases = db.GetSchema("Databases");
+        if (databases?.Rows != null)
+        {
+            foreach (System.Data.DataRow row in databases.Rows)
+            {
+                this.AvailableDatabases.Add(row.Field<string>(@"database_name"));
+            }
+        } */
+
+private PowerPathDbConnect ppdbconnect;
+        public PowerPathDbConnect ppDbConnect
         {
             get
             {
-                return serverconfig;
+                return ppdbconnect;
             }
             set
             {
-                serverconfig = value;
+                ppdbconnect = value;
             }
         }
 
         public string ConnectionString
         {
-            get { return serverconfig.ConnectionString; }
+            get { return ppdbconnect.ConnectionString; }
         }
         public string DataSource
         {
-            get { return serverconfig.Server; }
+            get { return ppdbconnect.Server; }
             set
             {
                 string ds = "";
                 this.RaiseAndSetIfChanged(ref ds, value);
-                serverconfig.Server = ds;
+                ppdbconnect.Server = ds;
             }
         }
         public string UserID
         {
-            get { return serverconfig.UserID; }
+            get { return ppdbconnect.UserID; }
             set
             {
                 string uid = "";
                 this.RaiseAndSetIfChanged(ref uid, value);
-                serverconfig.UserID = uid;
+                ppdbconnect.UserID = uid;
             }
         }
         public string Password
         {
-            get { return serverconfig.Password; }
+            get { return ppdbconnect.Password; }
             set
             {
                 string p = "";
                 this.RaiseAndSetIfChanged(ref p, value);
-                serverconfig.Password = p;
+                ppdbconnect.Password = p;
             }
         }
 
         public string InitialCatalog
         {
-            get { return serverconfig.Database; }
+            get { return ppdbconnect.Database; }
             set
             {
                 string ic = "";
                 this.RaiseAndSetIfChanged(ref ic, value);
-                serverconfig.Database = ic;
+                ppdbconnect.Database = ic;
             }
         }
 

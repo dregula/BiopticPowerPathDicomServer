@@ -15,27 +15,17 @@ namespace BiopticPowerPathDicomServer
     {
         private static ILog Log = LogManager.GetLogger("BPServer");
 
-        private SqlConnection db;
-        public SqlConnection dbPP
-        {
-            get { return db; }
-            set { db = value; }
-        }
-        private ServerConfiguration serverconfig;
+        private DicomServerConfiguration serverconfig;
+        private PowerPathDbConnect powerpathdbconnect;
 
-        public ServerConfiguration ServerConfig
-        {
-            get { return serverconfig; }
-            set { serverconfig = value; }
-        }
 
-//TODO: decide how to create and use the dbconnection to Powerpath
+        //TODO: decide how to create and use the dbconnection to Powerpath
         public BPServer() { }   //MOCK: just to compile
 
-        public BPServer(SqlConnection dbPP, ServerConfiguration serviceConfig)
+        public BPServer(DicomServerConfiguration serverConfig, PowerPathDbConnect powerpathDbConnect)
         {
-            this.dbPP = dbPP ?? throw new ArgumentNullException(nameof(dbPP));
-            ServerConfig = serviceConfig ?? throw new ArgumentNullException(nameof(serviceConfig));
+            this.serverconfig = serverConfig ?? throw new ArgumentNullException(nameof(serverConfig));
+            powerpathdbconnect = powerpathDbConnect ?? throw new ArgumentNullException(nameof(powerpathdbconnect));
         }
 
         /// <summary>
@@ -56,7 +46,7 @@ namespace BiopticPowerPathDicomServer
                 MWL_Server.QueryReceived += MWL_Server_QueryReceived;
                 try
                 {
-                    MWL_Server.Listen(ServerConfig.Portnumber, ServerConfig.IpAddress);
+                    MWL_Server.Listen(serverconfig.Portnumber, serverconfig.IpAddress);
                 }
                 catch (Exception ex)
                 {

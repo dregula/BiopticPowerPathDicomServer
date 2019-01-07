@@ -10,7 +10,7 @@ using System.ComponentModel;
 using Common.Logging;
 using ReactiveUI;
 using BiopticPowerPathDicomServer.ViewModels;
-
+using System.Threading.Tasks;
 
 namespace BiopticPowerPathDicomServer
 {
@@ -18,7 +18,7 @@ namespace BiopticPowerPathDicomServer
     {
         private static ILog Log = LogManager.GetLogger("PPLoginForm");
 
-        private ServerConfiguration serverconfig;
+        private PowerPathDbConnect ppdbconnect;
 
         #region "Component variables (leave alone!)"
         private System.ComponentModel.Container components = null;
@@ -33,6 +33,8 @@ namespace BiopticPowerPathDicomServer
         private TextBox tbPasswordInput;
         private Button bntOK;
         private Button btnQuit;
+        private TextBox tbFeedback;
+        private SplitContainer splitContainerLogin;
         private TextBox tbUserNameInput;
         #endregion
 
@@ -54,17 +56,17 @@ namespace BiopticPowerPathDicomServer
 
         public PPLoginForm()
         {
-            serverconfig = new ServerConfiguration();
+            ppdbconnect = new PowerPathDbConnect();
             VM = new PPLoginViewModel();
-            VM.ServerConfig = serverconfig;
+            VM.ppDbConnect = ppdbconnect;
             InitializeAndBind();
         }
 
-        public PPLoginForm(ServerConfiguration serverConfig)
+        public PPLoginForm(PowerPathDbConnect PPDbconnect)
         {
-            serverconfig = serverConfig;
+            ppdbconnect = PPDbconnect;
             VM = new PPLoginViewModel();
-            VM.ServerConfig = serverConfig;
+            VM.ppDbConnect = ppdbconnect;
             InitializeAndBind();
         }
 
@@ -78,10 +80,10 @@ namespace BiopticPowerPathDicomServer
             #region "Bind this Form to the ReactiveUI viewmodel"
             this.Bind(VM, x => x.UserID, x => x.tbUserNameInput.Text);
             this.Bind(VM, x => x.Password, x => x.tbPasswordInput.Text);
-//not-working this.OneWayBind(VM, x => x.RecentServers, x => x.cbServer.DataSource);
+            //not-working this.OneWayBind(VM, x => x.RecentServers, x => x.cbServer.DataSource);
             this.Bind(VM, x => x.DataSource, x => x.cbServer.Text);
             this.Bind(VM, x => x.InitialCatalog, x => x.cbDatabase.Text);
-//not-working this.OneWayBind(VM, x => x.AvailableDatabases , x => x.cbDatabase.DataSource);
+            //not-working this.OneWayBind(VM, x => x.AvailableDatabases , x => x.cbDatabase.DataSource);
 
             //static-type error            this.BindCommand(VM, x => x.OKCmd, x => x.bntOK);
             #endregion
@@ -121,18 +123,24 @@ namespace BiopticPowerPathDicomServer
             this.tbDatabase = new System.Windows.Forms.TextBox();
             this.tbUsername = new System.Windows.Forms.TextBox();
             this.tbServer = new System.Windows.Forms.TextBox();
+            this.tbFeedback = new System.Windows.Forms.TextBox();
+            this.splitContainerLogin = new System.Windows.Forms.SplitContainer();
             this.gbLogon.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainerLogin)).BeginInit();
+            this.splitContainerLogin.Panel1.SuspendLayout();
+            this.splitContainerLogin.Panel2.SuspendLayout();
+            this.splitContainerLogin.SuspendLayout();
             this.SuspendLayout();
             // 
             // tbPreamble
             // 
             this.tbPreamble.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tbPreamble.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbPreamble.Location = new System.Drawing.Point(30, 37);
+            this.tbPreamble.Location = new System.Drawing.Point(4, 0);
             this.tbPreamble.Multiline = true;
             this.tbPreamble.Name = "tbPreamble";
             this.tbPreamble.ReadOnly = true;
-            this.tbPreamble.Size = new System.Drawing.Size(1060, 83);
+            this.tbPreamble.Size = new System.Drawing.Size(368, 32);
             this.tbPreamble.TabIndex = 9;
             this.tbPreamble.TabStop = false;
             this.tbPreamble.Text = "Enter your Powerpath username and password.";
@@ -140,6 +148,7 @@ namespace BiopticPowerPathDicomServer
             // gbLogon
             // 
             this.gbLogon.Controls.Add(this.bntOK);
+            this.gbLogon.Controls.Add(this.tbPreamble);
             this.gbLogon.Controls.Add(this.btnQuit);
             this.gbLogon.Controls.Add(this.tbPasswordInput);
             this.gbLogon.Controls.Add(this.tbUserNameInput);
@@ -149,19 +158,19 @@ namespace BiopticPowerPathDicomServer
             this.gbLogon.Controls.Add(this.tbDatabase);
             this.gbLogon.Controls.Add(this.tbUsername);
             this.gbLogon.Controls.Add(this.tbServer);
-            this.gbLogon.Location = new System.Drawing.Point(30, 95);
+            this.gbLogon.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gbLogon.Location = new System.Drawing.Point(0, 0);
             this.gbLogon.Name = "gbLogon";
-            this.gbLogon.Size = new System.Drawing.Size(1086, 618);
+            this.gbLogon.Size = new System.Drawing.Size(541, 295);
             this.gbLogon.TabIndex = 17;
             this.gbLogon.TabStop = false;
-            this.gbLogon.Text = "Logon";
             // 
             // bntOK
             // 
             this.bntOK.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.bntOK.Location = new System.Drawing.Point(256, 496);
+            this.bntOK.Location = new System.Drawing.Point(119, 244);
             this.bntOK.Name = "bntOK";
-            this.bntOK.Size = new System.Drawing.Size(359, 91);
+            this.bntOK.Size = new System.Drawing.Size(166, 44);
             this.bntOK.TabIndex = 26;
             this.bntOK.Text = "OK";
             this.bntOK.UseVisualStyleBackColor = true;
@@ -170,9 +179,9 @@ namespace BiopticPowerPathDicomServer
             // btnQuit
             // 
             this.btnQuit.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnQuit.Location = new System.Drawing.Point(650, 496);
+            this.btnQuit.Location = new System.Drawing.Point(301, 244);
             this.btnQuit.Name = "btnQuit";
-            this.btnQuit.Size = new System.Drawing.Size(410, 91);
+            this.btnQuit.Size = new System.Drawing.Size(189, 44);
             this.btnQuit.TabIndex = 25;
             this.btnQuit.Text = "Quit MWL Server";
             this.btnQuit.UseVisualStyleBackColor = true;
@@ -181,46 +190,46 @@ namespace BiopticPowerPathDicomServer
             // tbPasswordInput
             // 
             this.tbPasswordInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbPasswordInput.Location = new System.Drawing.Point(256, 271);
+            this.tbPasswordInput.Location = new System.Drawing.Point(119, 138);
             this.tbPasswordInput.Name = "tbPasswordInput";
             this.tbPasswordInput.PasswordChar = '*';
-            this.tbPasswordInput.Size = new System.Drawing.Size(804, 53);
+            this.tbPasswordInput.Size = new System.Drawing.Size(371, 30);
             this.tbPasswordInput.TabIndex = 21;
             // 
             // tbUserNameInput
             // 
             this.tbUserNameInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbUserNameInput.Location = new System.Drawing.Point(256, 163);
+            this.tbUserNameInput.Location = new System.Drawing.Point(119, 86);
             this.tbUserNameInput.Name = "tbUserNameInput";
-            this.tbUserNameInput.Size = new System.Drawing.Size(804, 53);
+            this.tbUserNameInput.Size = new System.Drawing.Size(371, 30);
             this.tbUserNameInput.TabIndex = 22;
             // 
             // cbDatabase
             // 
             this.cbDatabase.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cbDatabase.FormattingEnabled = true;
-            this.cbDatabase.Location = new System.Drawing.Point(256, 378);
+            this.cbDatabase.Location = new System.Drawing.Point(119, 190);
             this.cbDatabase.Name = "cbDatabase";
-            this.cbDatabase.Size = new System.Drawing.Size(804, 54);
+            this.cbDatabase.Size = new System.Drawing.Size(371, 33);
             this.cbDatabase.TabIndex = 24;
             // 
             // cbServer
             // 
             this.cbServer.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cbServer.FormattingEnabled = true;
-            this.cbServer.Location = new System.Drawing.Point(256, 56);
+            this.cbServer.Location = new System.Drawing.Point(119, 34);
             this.cbServer.Name = "cbServer";
-            this.cbServer.Size = new System.Drawing.Size(804, 54);
+            this.cbServer.Size = new System.Drawing.Size(371, 33);
             this.cbServer.TabIndex = 23;
             // 
             // tbPassword
             // 
             this.tbPassword.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tbPassword.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbPassword.Location = new System.Drawing.Point(0, 277);
+            this.tbPassword.Location = new System.Drawing.Point(1, 141);
             this.tbPassword.Name = "tbPassword";
             this.tbPassword.ReadOnly = true;
-            this.tbPassword.Size = new System.Drawing.Size(284, 46);
+            this.tbPassword.Size = new System.Drawing.Size(131, 23);
             this.tbPassword.TabIndex = 13;
             this.tbPassword.TabStop = false;
             this.tbPassword.Text = "Password:";
@@ -229,10 +238,10 @@ namespace BiopticPowerPathDicomServer
             // 
             this.tbDatabase.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tbDatabase.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbDatabase.Location = new System.Drawing.Point(4, 384);
+            this.tbDatabase.Location = new System.Drawing.Point(3, 193);
             this.tbDatabase.Name = "tbDatabase";
             this.tbDatabase.ReadOnly = true;
-            this.tbDatabase.Size = new System.Drawing.Size(280, 46);
+            this.tbDatabase.Size = new System.Drawing.Size(129, 23);
             this.tbDatabase.TabIndex = 12;
             this.tbDatabase.TabStop = false;
             this.tbDatabase.Text = "Database:";
@@ -241,10 +250,10 @@ namespace BiopticPowerPathDicomServer
             // 
             this.tbUsername.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tbUsername.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbUsername.Location = new System.Drawing.Point(4, 169);
+            this.tbUsername.Location = new System.Drawing.Point(3, 89);
             this.tbUsername.Name = "tbUsername";
             this.tbUsername.ReadOnly = true;
-            this.tbUsername.Size = new System.Drawing.Size(280, 46);
+            this.tbUsername.Size = new System.Drawing.Size(129, 23);
             this.tbUsername.TabIndex = 11;
             this.tbUsername.TabStop = false;
             this.tbUsername.Text = "User Name:";
@@ -253,28 +262,61 @@ namespace BiopticPowerPathDicomServer
             // 
             this.tbServer.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tbServer.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbServer.Location = new System.Drawing.Point(4, 62);
+            this.tbServer.Location = new System.Drawing.Point(3, 37);
             this.tbServer.Name = "tbServer";
             this.tbServer.ReadOnly = true;
-            this.tbServer.Size = new System.Drawing.Size(280, 46);
+            this.tbServer.Size = new System.Drawing.Size(129, 23);
             this.tbServer.TabIndex = 10;
             this.tbServer.TabStop = false;
             this.tbServer.Text = "Server:";
             // 
+            // tbFeedback
+            // 
+            this.tbFeedback.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbFeedback.Location = new System.Drawing.Point(0, 0);
+            this.tbFeedback.Multiline = true;
+            this.tbFeedback.Name = "tbFeedback";
+            this.tbFeedback.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tbFeedback.Size = new System.Drawing.Size(541, 119);
+            this.tbFeedback.TabIndex = 19;
+            this.tbFeedback.TabStop = false;
+            // 
+            // splitContainerLogin
+            // 
+            this.splitContainerLogin.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainerLogin.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitContainerLogin.Location = new System.Drawing.Point(0, 0);
+            this.splitContainerLogin.Name = "splitContainerLogin";
+            this.splitContainerLogin.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainerLogin.Panel1
+            // 
+            this.splitContainerLogin.Panel1.Controls.Add(this.gbLogon);
+            // 
+            // splitContainerLogin.Panel2
+            // 
+            this.splitContainerLogin.Panel2.Controls.Add(this.tbFeedback);
+            this.splitContainerLogin.Size = new System.Drawing.Size(541, 418);
+            this.splitContainerLogin.SplitterDistance = 295;
+            this.splitContainerLogin.TabIndex = 18;
+            // 
             // PPLoginForm
             // 
-            this.AutoScaleBaseSize = new System.Drawing.Size(13, 31);
-            this.ClientSize = new System.Drawing.Size(1153, 752);
-            this.Controls.Add(this.gbLogon);
-            this.Controls.Add(this.tbPreamble);
+            this.AutoScaleBaseSize = new System.Drawing.Size(6, 15);
+            this.ClientSize = new System.Drawing.Size(541, 418);
+            this.Controls.Add(this.splitContainerLogin);
             this.Name = "PPLoginForm";
             this.Text = "PowerPath Login";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.PPLoginForm_Closing);
             this.Load += new System.EventHandler(this.PPLoginForm_Load);
             this.gbLogon.ResumeLayout(false);
             this.gbLogon.PerformLayout();
+            this.splitContainerLogin.Panel1.ResumeLayout(false);
+            this.splitContainerLogin.Panel2.ResumeLayout(false);
+            this.splitContainerLogin.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainerLogin)).EndInit();
+            this.splitContainerLogin.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
         #endregion
@@ -301,75 +343,55 @@ namespace BiopticPowerPathDicomServer
         //REFACTOR: into reactive binding
         private void bntOK_Click(object sender, EventArgs e)
         {
-//TODO: check whether we should test the serverconfig or the control text?
-            // check if username is present
-            if (this.tbUserNameInput.Text.Length < 1)
+            string strTestConnectionValues = ppdbconnect.FeedbackFromCheckConnectionBuilder();
+            if (strTestConnectionValues.Length > 0)
             {
-//TODO: don't use messagebox!
-                MessageBox.Show("Username must be entered!");
+                Log.Info(strTestConnectionValues);
+                if (this.tbFeedback.InvokeRequired)
+                {
+                    this.tbFeedback.Invoke((MethodInvoker)delegate
+                    {
+                        this.tbFeedback.Text = strTestConnectionValues;
+                    });
+                }
+                else
+                {
+                    this.tbFeedback.Text = strTestConnectionValues;
+                }
                 return;
-            }
-
-            // check if password is present
-            if (this.tbPasswordInput.Text.Length < 1)
-            {
-                MessageBox.Show("Password must be entered!");
-                return;
-            }
-
-            if (this.serverconfig.ConnectionString.Length < 1)
-            {
-                Log.Error("PowerPath connection string is empty!");
-                MessageBox.Show("PowerPath connection string is empty!");
-                return;
-            }
-            Log.Info("Attempting connection to database.");
-//TODO: Not Implemented!
-            if ( isPowerPathConnected() )
-            {
-
             }
             else
             {
-
-            }
-        }
-
-        private bool isPowerPathConnected()
-        {
-            try
-            {
-                using (SqlConnection db = new SqlConnection(this.serverconfig.ConnectionString))
+                Log.Info(@"Attempting connection to database.");
+                if (this.tbFeedback.InvokeRequired)
                 {
-                    db.Open();
-//TODO: REFACTOR db can be opened, but without an initial catalog 
-                    var databases = db.GetSchema("Databases");
-                    if (databases?.Rows != null)
+                    this.tbFeedback.Invoke((MethodInvoker)delegate
                     {
-                        foreach (System.Data.DataRow row in databases.Rows)
-                        {
-                            this.serverconfig.AvailableDatabases.Add(row.Field<string>(@"database_name"));
-                        }
-                    }
-                    /* If we reached here, that means the connection to the database was successful. */
-                    return true;
+                        this.tbFeedback.Text = @"Attempting connection to database.";
+                    });
+                }
+                else
+                {
+                    this.tbFeedback.Text = @"Attempting connection to database.";
                 }
             }
-            catch (SqlException se)
+            //DEBUG!            Task<string> taskFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(ppdbconnect.ConnectionString);
+            //            taskFeedbackFromTestPowerPathConnect.Wait();
+            //           string strFeedbackFromTestPowerPathConnect = taskFeedbackFromTestPowerPathConnect.Result.ToString();
+            string strFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(ppdbconnect.ConnectionString);
+            if (strFeedbackFromTestPowerPathConnect.Length > 0)
             {
-//TODO: if server connected, but n=wrong database, then do something...
-                 Log.Warn("Sql Error connecting to PowerPath with connectionstring: '"
-                    + this.serverconfig.ConnectionString + " with error: " + se.Message);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                // We are here that means the connection failed!
-                // You can handle the exception differently if you want to provide richer error handling.
-                // At this moment we just return "false" which means the connection failed.
-                Log.Error("Error connecting to PowerPath with connectionstring: '"
-                    + this.serverconfig.ConnectionString + " with error: " + ex.Message);
-                return false;
+                if (this.tbFeedback.InvokeRequired)
+                {
+                    this.tbFeedback.Invoke((MethodInvoker)delegate
+                    {
+                        this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;
+                    });
+                }
+                else
+                {
+                    this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;
+                }
             }
         }
     }
