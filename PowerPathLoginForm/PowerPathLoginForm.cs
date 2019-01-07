@@ -347,51 +347,21 @@ namespace BiopticPowerPathDicomServer
             if (strTestConnectionValues.Length > 0)
             {
                 Log.Info(strTestConnectionValues);
-                if (this.tbFeedback.InvokeRequired)
-                {
-                    this.tbFeedback.Invoke((MethodInvoker)delegate
-                    {
-                        this.tbFeedback.Text = strTestConnectionValues;
-                    });
-                }
-                else
-                {
-                    this.tbFeedback.Text = strTestConnectionValues;
-                }
+                this.tbFeedback.Text = strTestConnectionValues;
                 return;
             }
             else
             {
                 Log.Info(@"Attempting connection to database.");
-                if (this.tbFeedback.InvokeRequired)
-                {
-                    this.tbFeedback.Invoke((MethodInvoker)delegate
-                    {
-                        this.tbFeedback.Text = @"Attempting connection to database.";
-                    });
-                }
-                else
-                {
-                    this.tbFeedback.Text = @"Attempting connection to database.";
-                }
+                this.tbFeedback.Text = @"Attempting connection to database.";
             }
             //DEBUG!            Task<string> taskFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(ppdbconnect.ConnectionString);
             //            taskFeedbackFromTestPowerPathConnect.Wait();
             //           string strFeedbackFromTestPowerPathConnect = taskFeedbackFromTestPowerPathConnect.Result.ToString();
-            string strFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(ppdbconnect.ConnectionString);
+            string strFeedbackFromTestPowerPathConnect = ppdbconnect.FeedbackFromTestPowerPathConnect();
             if (strFeedbackFromTestPowerPathConnect.Length > 0)
             {
-                if (this.tbFeedback.InvokeRequired)
-                {
-                    this.tbFeedback.Invoke((MethodInvoker)delegate
-                    {
-                        this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;
-                    });
-                }
-                else
-                {
-                    this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;
-                }
+                this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;
             }
         }
     }

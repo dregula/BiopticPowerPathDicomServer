@@ -181,22 +181,22 @@ namespace BiopticPowerPathDicomServer
         }
 
 //TODO: pass-in a builder, so we can log all details, but only show user the error...
-        public static string FeedbackFromTestPowerPathConnect(string strConnection)
+        public string FeedbackFromTestPowerPathConnect()
         {
             try
             {
-                using (SqlConnection db = new SqlConnection(strConnection))
+                using (SqlConnection db = new SqlConnection(this.ConnectionString))
                 {
                     db.Open();
                     /* If we reached here, that means the connection to the database was successful. */
-                    return "";
+                    return "Successful connection!";
                 }
             }
             catch (SqlException se)
             {
                 //TODO: if server connected, but n=wrong database, then do something...
                 string strSqlException = "Sql Error connecting to PowerPath"
-                //    + " with connectionstring: '" + strConnection
+                    + " with connectionstring: '" + this.ConnectionString
                     + " with error: " + se.Message;
                 Log.Warn(strSqlException);
                 return strSqlException;
@@ -204,7 +204,7 @@ namespace BiopticPowerPathDicomServer
             catch (Exception ex)
             {
                 string strException = "Error connecting to PowerPath"
-                //    + " with connectionstring: '" + strConnection
+                    + " with connectionstring: '" + this.ConnectionString
                     + " with error: " + ex.Message;
                 Log.Error(strException);
                 return strException;
