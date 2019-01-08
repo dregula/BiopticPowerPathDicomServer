@@ -96,7 +96,7 @@ namespace BiopticPowerPathDicomServer
             }
             catch(Exception ex)
             {
-                Log.Fatal("Failed to create MWL_Server!");
+                Log.Fatal("Failed to create MWL_Server!" + ex.Message);
                 return;
             }
 
@@ -108,7 +108,7 @@ namespace BiopticPowerPathDicomServer
             }
             catch (Exception ex)
             {
-                Log.Fatal("Failed to connect DicomServer events!");
+                Log.Fatal("Failed to connect DicomServer events!" + ex.Message);
             }
 
             try
@@ -138,6 +138,7 @@ namespace BiopticPowerPathDicomServer
                 // L_ELEMENTSOUT = 32,
             DicomGlobal.EventLogLevel = (DicomObjects.Enums.LogLevel)0x3F; //dec 63
             DicomGlobal.LogEvent += DicomGlobal_LogEvent;
+            Log.Trace("MWL_Server started!");
          }
     }
 }

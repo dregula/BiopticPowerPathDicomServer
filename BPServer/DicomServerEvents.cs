@@ -113,7 +113,14 @@ namespace BiopticPowerPathDicomServer
 
                     #region "Build SQL query based on SCU request"
                     // the "where 1=1" makes the syntax of adding further conditions simpler, as all are then " AND x=y"
-                    string sql = "SELECT * from ExamsScheduled Where 1=1";
+                    //TODO: refactor hard-coded table into Powerpath configuration item
+                    string tableWithExamsScheduled = @"vwsu_scheduled_speciman_xrays";
+                    if (this.dicomserverconfig.ExamScheduledTable.Length > 4)
+                    {
+                        tableWithExamsScheduled = dicomserverconfig.ExamScheduledTable;
+                    }
+                        tableWithExamsScheduled = dicomserverconfig.ExamScheduledTable;
+                    string sql = "SELECT * from " + tableWithExamsScheduled + " Where 1=1";
                     Utils_SQL.AddCondition(ref sql, rq[Keyword.PatientID], "PatientID");
                     Utils_SQL.AddNameCondition(ref sql, rq[Keyword.PatientName], "surname", "Forename");
 

@@ -7,36 +7,30 @@ using System.Data.SqlClient;
 
 namespace BiopticPowerPathDicomServer
 {
-    public class PowerPathLoginConfig
+    public class ServerLogin
     {
         private SqlConnectionStringBuilder builder;
         private List<string> listServers = new List<string>();
         private List<string> listDatabases = new List<string>();
 
         #region "Properties"
-        private bool validdbconnection;
+        private bool validdbconnection = false;
         public bool ValidDbConnection
         {
             get { return validdbconnection; }
             set { validdbconnection =value; }
         }
 
-        private string scheduledexamstable;
 
-        public string ScheduledExamsTable
-        {
-            get { return scheduledexamstable; }
-            set { scheduledexamstable = value; }
-        }
 
         public SqlConnectionStringBuilder Builder
         {
             get { return builder; }
             set { builder = value; }
         }
-        public PowerPathLoginConfig Copy()
+        public ServerLogin Copy()
         {
-            PowerPathLoginConfig cp = new PowerPathLoginConfig(builder);
+            ServerLogin cp = new ServerLogin(builder);
             cp.ListDatabases = new List<string>(listDatabases);
             cp.ListServers = new List<string>(listServers);
             cp.ValidDbConnection = this.ValidDbConnection;
@@ -92,15 +86,15 @@ namespace BiopticPowerPathDicomServer
         #endregion
 
         #region "Constructors"
-        public PowerPathLoginConfig()
+        public ServerLogin()
         {
 
         }
-        public PowerPathLoginConfig(string connectionString)
+        public ServerLogin(string connectionString)
         {
             builder = new SqlConnectionStringBuilder(connectionString);
         }
-        public PowerPathLoginConfig(SqlConnectionStringBuilder Builder)
+        public ServerLogin(SqlConnectionStringBuilder Builder)
         {
             builder = new SqlConnectionStringBuilder(Builder.ConnectionString);
         }

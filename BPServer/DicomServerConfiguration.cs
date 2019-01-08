@@ -15,6 +15,7 @@ namespace BiopticPowerPathDicomServer
         string IpAddressFamily { get; set; }
     }
 
+    //TODO: ReImplement with backing variables and query the Registry ONCE!
     public partial class DicomServerConfiguration : DicomServerConfigurationInterface
     {
         private RegistryKey rkDicomObject;
@@ -32,7 +33,24 @@ namespace BiopticPowerPathDicomServer
                     }
                 }
             }
-        } 
+        }
+
+        // DataDource:
+        //  Values specific to connecting to data in the source (PowerPath)
+        //      ExamScheduledTable:
+        //          The table in the PowerPath database which contains the X-Ray order data
+
+        public string ExamScheduledTable
+        {
+            get
+            {
+                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"DataSource"))
+                {
+                    return (string)rkDicomObjectPort.GetValue(@"ExamScheduledTable", "");
+                }
+            }
+        }
+
         // Port:
         //     The TCP port on which to receive connections
         //

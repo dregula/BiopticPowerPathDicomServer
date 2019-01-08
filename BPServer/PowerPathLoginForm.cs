@@ -362,7 +362,8 @@ namespace BiopticPowerPathDicomServer
             else // sucessfully connected to db!
             {
                 serverlogin.ValidDbConnection = true;
-                //this.Close();
+                this.dsUserFeedback.Lines.Add(@"Successfully connected to PowerPath!");
+                this.Close();
             }
         }
 
