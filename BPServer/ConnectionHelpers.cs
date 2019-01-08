@@ -9,9 +9,9 @@ namespace BiopticPowerPathDicomServer
 {
     public static class ConnectionHelpers
     {
-        public static ServerLogin ServerLoginFromPowerPathRegistry()
+        public static PowerPathLoginConfig ServerLoginFromPowerPathRegistry()
         {
-            ServerLogin serverlogin = new ServerLogin();
+            PowerPathLoginConfig serverlogin = new PowerPathLoginConfig();
             List<string> listRegistryLoginValueNames = new List<string>();
             List<string> listRegistryLoginSubKeys = new List<string>();
              RegistryKey rkPowerPath = null;
@@ -25,7 +25,7 @@ namespace BiopticPowerPathDicomServer
             builder.UserID = getRegistryStringValue(@"Login Name", rkPowerPath);
             builder.Password = getRegistryStringValue(@"Password", rkPowerPath);
             builder.InitialCatalog = getRegistryStringValue(@"Database", rkPowerPath);
-            serverlogin = new ServerLogin(builder);
+            serverlogin = new PowerPathLoginConfig(builder);
             if (listRegistryLoginSubKeys.Contains(@"Servers"))
             {
                 RegistryKey rkServers = rkPowerPath.OpenSubKey(@"Servers", false);
@@ -59,7 +59,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        public static string FeedbackFromTestDatabaseConnect(ServerLogin serverlogin)
+        public static string FeedbackFromTestDatabaseConnect(PowerPathLoginConfig serverlogin)
         {
             // ping first, as this is quicker
             //CONSIDER: refactor ping and Sql-db-connect into two async methods and wait for whomever comes first.

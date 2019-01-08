@@ -25,7 +25,6 @@ namespace BiopticPowerPathDicomServer
         #region "DICOM Event Handlers"
         private void DicomGlobal_LogEvent(DicomObjects.EventArguments.LogEventArgs e)
         {
-//TODO: pass the severity of the '
             switch((DicomObjects.Enums.LogLevel)e.Level)
             {
                 case DicomObjects.Enums.LogLevel.L_ERROR:
@@ -41,7 +40,6 @@ namespace BiopticPowerPathDicomServer
                     Log.Debug(e.Text);
                     break;
             }
-            Log.Debug(e.Text);
         }
 
         internal static void AddResultItem(DicomDataSet DataSet, DicomDataSet request, Keyword keyword, object v)
@@ -77,6 +75,15 @@ namespace BiopticPowerPathDicomServer
 
         private void MWL_Server_QueryReceived(object sender, QueryReceivedArgs e)
         {
+            #region "Abort if not an MWL query"
+            if (e.Root != QueryRoot.ModalityWorklist)
+            {
+                e.Errors.Add(Keyword.ErrorComment, "Invalid Query Root : None");
+                e.Status = StatusCodes.InvalidQueryRoot;
+                return;
+            }
+            #endregion
+
             DicomDataSetCollection NullSequence = new DicomDataSetCollection();
             DicomDataSet rq;
             DicomDataSet rq1 = null;
@@ -85,26 +92,26 @@ namespace BiopticPowerPathDicomServer
             System.Data.SqlClient.SqlConnection db = null;
             try
             {
-                db = new System.Data.SqlClient.SqlConnection(serverlogin.ConnectionString);
-                db.Open();
-                //this.EnableLoginInput(false);   // if we got this far, we have a valid sqlconnection
-                //this.WindowState = FormWindowState.Minimized;
+                #region "Open PowerPath db"
+                try
+                {
+                    db = new System.Data.SqlClient.SqlConnection(powerpathloginconfig.ConnectionString);
+                    db.Open();
+                }
+                catch (SqlException se)
+                {
+                    Log.Error("Sql Error opening Database -- " + se.Message);
+                    status = StatusCodes.GeneralError; // Error, unable to process!
+                    return;
+                }
+                #endregion
+
                 using (var DBContext = new DataContext(db))
                 {
-                    if (e.Root != QueryRoot.ModalityWorklist)
-                    {
-                        e.Errors.Add(Keyword.ErrorComment, "Invalid Query Root : None");
-                        e.Status = StatusCodes.InvalidQueryRoot;
-                        return;
-                    }
                     // Get the Imcoming Query Request
                     rq = e.RequestAssociation.Request;
 
-                    // In a "Real" MWl server, this would either itself be a complex linked query, or a reference to such
-                    // a query as a "view" or similar in the underlying database
-
-                    //  Using SQL
-
+                    #region "Build SQL query based on SCU request"
                     // the "where 1=1" makes the syntax of adding further conditions simpler, as all are then " AND x=y"
                     string sql = "SELECT * from ExamsScheduled Where 1=1";
                     Utils_SQL.AddCondition(ref sql, rq[Keyword.PatientID], "PatientID");
@@ -124,7 +131,7 @@ namespace BiopticPowerPathDicomServer
 
                         // if only date is specified, then using standard matching
                         //but if both are specified, then MWL defines a combined match
-//TODO: decide whether we want to ever enable date matching
+                        //TODO: decide whether we want to ever enable date matching
                         if (true)   //!DisableDateMatching.Checked)
                         {
                             if (rq1[Keyword.ScheduledProcedureStepStartDate].ExistsWithValue && rq1[Keyword.ScheduledProcedureStepStartTime].ExistsWithValue) // if both Date and Time are specified
@@ -144,11 +151,22 @@ namespace BiopticPowerPathDicomServer
 
                     sql = sql + " Order by Surname, Forename";
                     Log.Debug("SQL query statement:" + Environment.NewLine + sql);
+                    #endregion
 
-                    //DataContext database = Utils.SetupDB();
-                    results = DBContext.ExecuteQuery<ExamsScheduled>(sql);
+                    #region "Execute Sql Query"
+                    try
+                    {
+                        results = DBContext.ExecuteQuery<ExamsScheduled>(sql);
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Error("Error executing SQL: '" + sql + "'. " + ex.Message);
+                        status = StatusCodes.GeneralError;
+                        return;
+                    }
+                    #endregion
 
-                    //  Parsing result 
+                    #region "Parse results"
                     DicomDataSet rr1;
                     DicomDataSet rr;
                     DicomDataSetCollection rrs;
@@ -214,26 +232,28 @@ namespace BiopticPowerPathDicomServer
                         e.SendResponse(rr, StatusCodes.Pending);
                         Log.Info("PowerPath Database Disconnected Normally");
                     }
+                    #endregion
                 }
-            }
-            catch (SqlException se)
-            {
-                Log.Error("Sql Error executing Database -- " + se.Message);
-                //this.EnableLoginInput(true);
-                //this.WindowState = FormWindowState.Normal;
-                status = StatusCodes.GeneralError; // Error, unable to process!
+                
             }
             catch (Exception ex)
             {
-                Log.Error("Error executing Database -- " + ex.Message);
-
+                Log.Error("Error processing MWL rewuest -- " + ex.Message);
                 status = StatusCodes.GeneralError; // Error, unable to process!
             }
             finally
             {
-                db.Dispose();
+                if (null != db)
+                {
+                    try
+                    {
+                        db.Close();
+                    }
+                    catch { /* ignore an SqlException here */ }
+                    db.Dispose();
+                }
+                e.Status = status;
             }
-            e.Status = status;
         }
         #endregion
     }

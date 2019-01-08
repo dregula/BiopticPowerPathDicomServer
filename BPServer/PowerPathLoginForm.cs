@@ -17,8 +17,8 @@ namespace BiopticPowerPathDicomServer
     {
         private static ILog Log = LogManager.GetLogger("PPLoginForm");
 
-        private ServerLogin serverlogin;
-        public ServerLogin ServerLogin
+        private PowerPathLoginConfig serverlogin;
+        public PowerPathLoginConfig ServerLogin
         {
             get
             {
@@ -58,7 +58,7 @@ namespace BiopticPowerPathDicomServer
         /// 
         /// </summary>
         /// <param name="Builder"></param>
-        public PPLoginForm(ServerLogin serverLogin)
+        public PPLoginForm(PowerPathLoginConfig serverLogin)
         {
             this.serverlogin = serverLogin.Copy();
             InitializeComponent();
@@ -69,11 +69,11 @@ namespace BiopticPowerPathDicomServer
         {
             // note: a List can serve as a datasource, but the individual builder object cannot
             this.cbServer.DataSource = serverlogin.ListServers;
-            this.cbServer.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "DataSource"));
-            this.tbUserNameInput.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "UserID"));
-            this.tbPasswordInput.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "Password"));
+            this.cbServer.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "DataSource"));
+            this.tbUserNameInput.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "UserID"));
+            this.tbPasswordInput.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "Password"));
             this.cbServer.DataSource = serverlogin.ListDatabases;
-            this.cbDatabase.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "InitialCatalog"));
+            this.cbDatabase.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "InitialCatalog"));
             this.tbFeedback.DataBindings.Add("Lines", dsUserFeedback, "LinesArray");
         }
 

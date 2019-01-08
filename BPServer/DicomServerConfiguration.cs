@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.AccessControl;
 using Microsoft.Win32;
 
 namespace BiopticPowerPathDicomServer
@@ -17,18 +18,21 @@ namespace BiopticPowerPathDicomServer
     public partial class DicomServerConfiguration : DicomServerConfigurationInterface
     {
         private RegistryKey rkDicomObject;
-
         public DicomServerConfiguration()
         {
-            using (RegistryKey rkHive = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default))
+            RegistryRights rrBiopticVisionSCP = RegistryRights.EnumerateSubKeys | RegistryRights.QueryValues | RegistryRights.ReadKey;
+            using (RegistryKey rkCUHive = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
             {
-                rkDicomObject = rkHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP");
+                rkDicomObject = rkCUHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP", rrBiopticVisionSCP);
                 if (rkDicomObject == null)
                 {
-                    rkDicomObject = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default).OpenSubKey(@"Software\Stanford\BiopticVisionSCP");
+                    using (RegistryKey rkLKHive = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
+                    {
+                        rkDicomObject = rkLKHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP", rrBiopticVisionSCP);
+                    }
                 }
             }
-        }
+        } 
         // Port:
         //     The TCP port on which to receive connections
         //
