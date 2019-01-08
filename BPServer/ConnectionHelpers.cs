@@ -9,24 +9,23 @@ namespace BiopticPowerPathDicomServer
 {
     public static class ConnectionHelpers
     {
-        public static SqlConnectionStringBuilder BuilderFromPowerPathRegistry()
+        public static ServerLogin ServerLoginFromPowerPathRegistry()
         {
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+            ServerLogin serverlogin = new ServerLogin();
             List<string> listRegistryLoginValueNames = new List<string>();
             List<string> listRegistryLoginSubKeys = new List<string>();
-            List<string> listServers = new List<string>();
-            List<string> listDatabases = new List<string>();
-            RegistryKey rkPowerPath = null;
+             RegistryKey rkPowerPath = null;
             using (RegistryKey rkCU = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
             {
                 rkPowerPath = rkCU.OpenSubKey(@"Software\Tamtron\PowerPath Client\Login Info");
                 listRegistryLoginSubKeys.AddRange(rkPowerPath.GetSubKeyNames());
             }
-            builder = new SqlConnectionStringBuilder();
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
             builder.DataSource = getRegistryStringValue(@"Server", rkPowerPath);
             builder.UserID = getRegistryStringValue(@"Login Name", rkPowerPath);
             builder.Password = getRegistryStringValue(@"Password", rkPowerPath);
             builder.InitialCatalog = getRegistryStringValue(@"Database", rkPowerPath);
+            serverlogin = new ServerLogin(builder);
             if (listRegistryLoginSubKeys.Contains(@"Servers"))
             {
                 RegistryKey rkServers = rkPowerPath.OpenSubKey(@"Servers", false);
@@ -34,11 +33,12 @@ namespace BiopticPowerPathDicomServer
                 {
                     foreach (string valueName in rkServers.GetValueNames())
                     {
-                        listServers.Add(getRegistryStringValue(valueName, rkServers));
+                        serverlogin.ListServers.Add(getRegistryStringValue(valueName, rkServers));
                     }
                 }
             }
-            return builder;
+//TODO: add Server to listServers as required
+            return serverlogin;
        }
 
         public static string getRegistryStringValue(string strValueName, RegistryKey key)
@@ -59,15 +59,17 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        public static string FeedbackFromTestDatabaseConnect(SqlConnectionStringBuilder builder)
+        public static string FeedbackFromTestDatabaseConnect(ServerLogin serverlogin)
         {
-            if(false == PingHost(builder.DataSource))
+            // ping first, as this is quicker
+            //CONSIDER: refactor ping and Sql-db-connect into two async methods and wait for whomever comes first.
+            if(false == PingHost(serverlogin.DataSource))
             {
-                return "Server not found at: '" + builder.DataSource + @"'!";
+                return "Server not found at: '" + serverlogin.DataSource + @"'!";
             }
             try
             {
-                using (SqlConnection db = new SqlConnection(builder.ConnectionString))
+                using (SqlConnection db = new SqlConnection(serverlogin.ConnectionString))
                 {
                     db.Open();
                     /* If we reached here, that means the connection to the database was successful. */
@@ -86,7 +88,7 @@ namespace BiopticPowerPathDicomServer
                         break;
                 }
                 string strSqlException = "Sql Error connecting to PowerPath"
-                    + " with connectionstring: '" + builder.ConnectionString
+                    + " with connectionstring: '" + serverlogin.ConnectionString
                     + " with error: " + se.Message;
                 //Log.Warn(strSqlException);
                 return strSqlException;
@@ -94,7 +96,7 @@ namespace BiopticPowerPathDicomServer
             catch (Exception ex)
             {
                 string strException = "Error connecting to PowerPath"
-                    + " with connectionstring: '" + builder.ConnectionString
+                    + " with connectionstring: '" + serverlogin.ConnectionString
                     + " with error: " + ex.Message;
                 //Log.Error(strException);
                 return strException;

@@ -8,21 +8,34 @@ using System.Diagnostics;
 using System.Data.SqlClient;
 using System.ComponentModel;
 using Common.Logging;
-using ReactiveUI;
-using BiopticPowerPathDicomServer.ViewModels;
 using System.Threading.Tasks;
 
 
 namespace BiopticPowerPathDicomServer
 {
-    public partial class PPLoginForm : Form, IViewFor<PPLoginViewModel>
+    public partial class PPLoginForm : Form, IBindableComponent
     {
         private static ILog Log = LogManager.GetLogger("PPLoginForm");
 
-        private SqlConnectionStringBuilder builder;
+        private ServerLogin serverlogin;
+        public ServerLogin ServerLogin
+        {
+            get
+            {
+                return serverlogin.Copy();
+            }
+        }
+
+        public string ConnectionString
+        {
+            get { return serverlogin.ConnectionString; }
+        }
+
+        private IContainer components;
+        LinesDataSource dsUserFeedback = new LinesDataSource();
+        private bool hasValidationError = false;
 
         #region "Component variables (leave alone!)"
-        private System.ComponentModel.Container components = null;
         internal TextBox tbPreamble;
         private GroupBox gbLogon;
         internal TextBox tbPassword;
@@ -32,60 +45,39 @@ namespace BiopticPowerPathDicomServer
         private ComboBox cbDatabase;
         private ComboBox cbServer;
         private TextBox tbPasswordInput;
-        private Button bntOK;
+        public Button bntOK;
         private Button btnQuit;
         private TextBox tbFeedback;
         private SplitContainer splitContainerLogin;
+        private ErrorProvider errorProviderPPForm;
         private TextBox tbUserNameInput;
+
         #endregion
-
-        #region "ReactiveUI.WinForms"
-        public PPLoginViewModel VM { get; set; }
-
-        object IViewFor.ViewModel
-        {
-            get { return VM; }
-            set { VM = (PPLoginViewModel)value; }
-        }
-
-        PPLoginViewModel IViewFor<PPLoginViewModel>.ViewModel
-        {
-            get { return VM; }
-            set { VM = value; }
-        }
-        # endregion
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="Builder"></param>
-        public PPLoginForm(SqlConnectionStringBuilder Builder)
+        public PPLoginForm(ServerLogin serverLogin)
         {
-            builder = new SqlConnectionStringBuilder(Builder.ConnectionString);
-            VM = new PPLoginViewModel();
-            VM.Builder = builder;
-            InitializeAndBind();
-        }
-
-        private void InitializeAndBind()
-        {
-            //
-            // Required for Windows Form Designer support
-            //
+            this.serverlogin = serverLogin.Copy();
             InitializeComponent();
-
-            #region "Bind this Form to the ReactiveUI viewmodel"
-            this.Bind(VM, x => x.UserID, x => x.tbUserNameInput.Text);
-            this.Bind(VM, x => x.Password, x => x.tbPasswordInput.Text);
-            //not-working this.OneWayBind(VM, x => x.RecentServers, x => x.cbServer.DataSource);
-            this.Bind(VM, x => x.DataSource, x => x.cbServer.Text);
-            this.Bind(VM, x => x.InitialCatalog, x => x.cbDatabase.Text);
-            //not-working this.OneWayBind(VM, x => x.AvailableDatabases , x => x.cbDatabase.DataSource);
-
-            //static-type error            this.BindCommand(VM, x => x.OKCmd, x => x.bntOK);
-            #endregion
+            BindControls();
         }
 
+        private void BindControls()
+        {
+            // note: a List can serve as a datasource, but the individual builder object cannot
+            this.cbServer.DataSource = serverlogin.ListServers;
+            this.cbServer.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "DataSource"));
+            this.tbUserNameInput.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "UserID"));
+            this.tbPasswordInput.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "Password"));
+            this.cbServer.DataSource = serverlogin.ListDatabases;
+            this.cbDatabase.DataBindings.Add(new Binding("Text", new List<ServerLogin> { serverlogin }, "InitialCatalog"));
+            this.tbFeedback.DataBindings.Add("Lines", dsUserFeedback, "LinesArray");
+        }
+
+        #region "Disposal"
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -100,24 +92,7 @@ namespace BiopticPowerPathDicomServer
             }
             base.Dispose(disposing);
         }
-//TODO: refactor this into form control validation
-        private string FeedbackFromCheckConnectionBuilder()
-        {
-            if (this.cbServer.Text.Length < 1)
-            {
-                return @"Please enter the database server name or IP address!";
-            }
-            if (this.tbUserNameInput.Text.Length < 1)
-            {
-                return @"Username must be entered!";
-            }
-            if (this.tbPasswordInput.Text.Length < 1)
-            {
-                return @"Password must be entered!";
-            }
-            return "";
-        }
-
+        #endregion
 
         #region Windows Form Designer generated code
         /// <summary>
@@ -126,6 +101,7 @@ namespace BiopticPowerPathDicomServer
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.tbPreamble = new System.Windows.Forms.TextBox();
             this.gbLogon = new System.Windows.Forms.GroupBox();
             this.bntOK = new System.Windows.Forms.Button();
@@ -140,11 +116,13 @@ namespace BiopticPowerPathDicomServer
             this.tbServer = new System.Windows.Forms.TextBox();
             this.tbFeedback = new System.Windows.Forms.TextBox();
             this.splitContainerLogin = new System.Windows.Forms.SplitContainer();
+            this.errorProviderPPForm = new System.Windows.Forms.ErrorProvider(this.components);
             this.gbLogon.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerLogin)).BeginInit();
             this.splitContainerLogin.Panel1.SuspendLayout();
             this.splitContainerLogin.Panel2.SuspendLayout();
             this.splitContainerLogin.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProviderPPForm)).BeginInit();
             this.SuspendLayout();
             // 
             // tbPreamble
@@ -193,6 +171,7 @@ namespace BiopticPowerPathDicomServer
             // 
             // btnQuit
             // 
+            this.btnQuit.CausesValidation = false;
             this.btnQuit.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnQuit.Location = new System.Drawing.Point(301, 244);
             this.btnQuit.Name = "btnQuit";
@@ -210,6 +189,7 @@ namespace BiopticPowerPathDicomServer
             this.tbPasswordInput.PasswordChar = '*';
             this.tbPasswordInput.Size = new System.Drawing.Size(371, 30);
             this.tbPasswordInput.TabIndex = 21;
+            this.tbPasswordInput.Validating += new System.ComponentModel.CancelEventHandler(this.tbPasswordInput_Validating);
             // 
             // tbUserNameInput
             // 
@@ -218,6 +198,7 @@ namespace BiopticPowerPathDicomServer
             this.tbUserNameInput.Name = "tbUserNameInput";
             this.tbUserNameInput.Size = new System.Drawing.Size(371, 30);
             this.tbUserNameInput.TabIndex = 22;
+            this.tbUserNameInput.Validating += new System.ComponentModel.CancelEventHandler(this.tbUserNameInput_Validating);
             // 
             // cbDatabase
             // 
@@ -227,6 +208,7 @@ namespace BiopticPowerPathDicomServer
             this.cbDatabase.Name = "cbDatabase";
             this.cbDatabase.Size = new System.Drawing.Size(371, 33);
             this.cbDatabase.TabIndex = 24;
+            this.cbDatabase.Validating += new System.ComponentModel.CancelEventHandler(this.cbDatabase_Validating);
             // 
             // cbServer
             // 
@@ -236,6 +218,7 @@ namespace BiopticPowerPathDicomServer
             this.cbServer.Name = "cbServer";
             this.cbServer.Size = new System.Drawing.Size(371, 33);
             this.cbServer.TabIndex = 23;
+            this.cbServer.Validating += new System.ComponentModel.CancelEventHandler(this.cbServer_Validating);
             // 
             // tbPassword
             // 
@@ -287,6 +270,7 @@ namespace BiopticPowerPathDicomServer
             // 
             // tbFeedback
             // 
+            this.tbFeedback.CausesValidation = false;
             this.tbFeedback.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tbFeedback.Location = new System.Drawing.Point(0, 0);
             this.tbFeedback.Multiline = true;
@@ -315,6 +299,10 @@ namespace BiopticPowerPathDicomServer
             this.splitContainerLogin.SplitterDistance = 295;
             this.splitContainerLogin.TabIndex = 18;
             // 
+            // errorProviderPPForm
+            // 
+            this.errorProviderPPForm.ContainerControl = this;
+            // 
             // PPLoginForm
             // 
             this.AutoScaleBaseSize = new System.Drawing.Size(6, 15);
@@ -331,6 +319,7 @@ namespace BiopticPowerPathDicomServer
             this.splitContainerLogin.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerLogin)).EndInit();
             this.splitContainerLogin.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.errorProviderPPForm)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -355,30 +344,111 @@ namespace BiopticPowerPathDicomServer
             this.Close();
         }
 
-        //REFACTOR: into reactive binding
         private void bntOK_Click(object sender, EventArgs e)
         {
-            string strTestConnectionValues = FeedbackFromCheckConnectionBuilder();
-            if (strTestConnectionValues.Length > 0)
+            hasValidationError = false;
+            bool validated = this.ValidateChildren(ValidationConstraints.TabStop);
+            if (true == hasValidationError)
             {
-                Log.Info(strTestConnectionValues);
-                this.tbFeedback.Text = strTestConnectionValues;
+                hasValidationError = false;
                 return;
+            }
+            string strFeedbackFromTestPowerPathConnect = ConnectionHelpers.FeedbackFromTestDatabaseConnect(serverlogin);
+            if (strFeedbackFromTestPowerPathConnect.Length > 0)
+            {
+                this.dsUserFeedback.Lines.Add(strFeedbackFromTestPowerPathConnect);
+                serverlogin.ValidDbConnection = false;
+            }
+            else // sucessfully connected to db!
+            {
+                serverlogin.ValidDbConnection = true;
+                //this.Close();
+            }
+        }
+
+        private void cbServer_Validating(object sender, CancelEventArgs e)
+        {
+            ComboBox cb =(ComboBox)sender;
+            if (cb.Text.Length > 1)
+            {
+                errorProviderPPForm.SetError(cb, "");
             }
             else
             {
-                Log.Info(@"Attempting connection to database.");
-                this.tbFeedback.Text = @"Attempting connection to database.";
+                hasValidationError = true;
+                errorProviderPPForm.SetError(cb, "A Server name or IP address must be provided!");
             }
-            //DEBUG!            Task<string> taskFeedbackFromTestPowerPathConnect = PowerPathDbConnect.FeedbackFromTestPowerPathConnect(builder.ConnectionString);
-            //            taskFeedbackFromTestPowerPathConnect.Wait();
-            //           string strFeedbackFromTestPowerPathConnect = taskFeedbackFromTestPowerPathConnect.Result.ToString();
-            string strFeedbackFromTestPowerPathConnect = ConnectionHelpers.FeedbackFromTestDatabaseConnect(builder);
-            if (strFeedbackFromTestPowerPathConnect.Length > 0)
+         }
+
+        private void tbUserNameInput_Validating(object sender, CancelEventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            if (tb.Text.Length > 1)
             {
-                this.tbFeedback.Text = strFeedbackFromTestPowerPathConnect;
+                errorProviderPPForm.SetError(tb, "");
+            }
+            else
+            {
+                hasValidationError = true;
+                errorProviderPPForm.SetError(tb, "A valid User name must be provided!");
             }
         }
-    }
+
+        private void tbPasswordInput_Validating(object sender, CancelEventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            if (tb.Text.Length > 1)
+            {
+                errorProviderPPForm.SetError(tb, "");
+            }
+            else
+            {
+                hasValidationError = true;
+                errorProviderPPForm.SetError(tb, "A valid Password must be provided!");
+            }
+        }
+
+        private void cbDatabase_Validating(object sender, CancelEventArgs e)
+        {
+            ComboBox cb = (ComboBox)sender;
+            if (cb.Text.Length > 1)
+            {
+                errorProviderPPForm.SetError(cb, "");
+            }
+            else
+            {
+                hasValidationError = true;
+                errorProviderPPForm.SetError(cb, "A PowerPath database must be provided!");
+            }
+        }
+
+        // https://stackoverflow.com/questions/23321567/how-to-bind-textbox-lines-to-bindingliststring-in-winforms-in-c
+        private class LinesDataSource : INotifyPropertyChanged
+        {
+            private BindingList<string> lines = new BindingList<string>();
+            public LinesDataSource()
+            {
+                lines.ListChanged += (sender, e) => OnPropertyChanged("LinesArray");
+            }
+            public BindingList<string> Lines
+            {
+                get { return lines; }
+            }
+            public string[] LinesArray
+            {
+                get
+                {
+                    return lines.ToArray();
+                }
+            }
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                PropertyChangedEventHandler handler = PropertyChanged;
+                if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+     }
 }
 

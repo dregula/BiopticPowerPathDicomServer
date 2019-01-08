@@ -17,8 +17,8 @@ namespace BiopticPowerPathDicomServer
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            SqlConnectionStringBuilder builder = ConnectionHelpers.BuilderFromPowerPathRegistry();
-            Application.Run(new PPLoginForm(builder));
+            ServerLogin serverlogin = ConnectionHelpers.ServerLoginFromPowerPathRegistry();
+            Application.Run(new PPLoginForm(serverlogin));
         }
     }
 }

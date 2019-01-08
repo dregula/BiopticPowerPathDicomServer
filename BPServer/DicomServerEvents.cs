@@ -85,7 +85,7 @@ namespace BiopticPowerPathDicomServer
             System.Data.SqlClient.SqlConnection db = null;
             try
             {
-                db = new System.Data.SqlClient.SqlConnection(builder.ConnectionString);
+                db = new System.Data.SqlClient.SqlConnection(serverlogin.ConnectionString);
                 db.Open();
                 //this.EnableLoginInput(false);   // if we got this far, we have a valid sqlconnection
                 //this.WindowState = FormWindowState.Minimized;

@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace BiopticPowerPathDicomServer
 {
@@ -22,10 +23,13 @@ namespace BiopticPowerPathDicomServer
     /// </remarks>
     class Program
     {
-        public SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
         static void Main(string[] args)
         {
-
+            ApplicationContext appContext = new ApplicationContext();
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(appContext);
+            BPServer bpserver = new BPServer(appContext);
         }
     }
 }
