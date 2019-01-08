@@ -61,6 +61,7 @@ namespace BiopticPowerPathDicomServer
             {
                 MessageBox.Show ("Failed to get a valid connection to PowerPath.\r\nModality Worklist (MWL) is unavailable!");
                 Application.Exit();
+                return;
             }
             this.RunServer();
         }
@@ -88,7 +89,6 @@ namespace BiopticPowerPathDicomServer
                 catch (Exception ex)
                 {
                     Log.Error("Failed to set listening port: " + ex.Message);
-                    throw;
                 }
 
                 //Put the following line back in to enable DicomObjects logging
