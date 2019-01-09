@@ -22,6 +22,8 @@ namespace BiopticPowerPathDicomServer
             public const int InvalidQueryRoot = 0xC001;
         }
 
+        private static readonly log4net.ILog Tracelog = log4net.LogManager.GetLogger("BPServer");
+
         #region "DICOM Event Handlers"
         private void DicomGlobal_LogEvent(DicomObjects.EventArguments.LogEventArgs e)
         {
@@ -75,6 +77,9 @@ namespace BiopticPowerPathDicomServer
 
         private void MWL_Server_QueryReceived(object sender, QueryReceivedArgs e)
         {
+            #region "Tracing all calls to Server"
+            Tracelog.Debug("MWL_Server_QueryReceived with QueryRoot: " + e.Root.ToString());
+            #endregion
             #region "Abort if not an MWL query"
             if (e.Root != QueryRoot.ModalityWorklist)
             {
@@ -119,7 +124,6 @@ namespace BiopticPowerPathDicomServer
                     {
                         tableWithExamsScheduled = dicomserverconfig.ExamScheduledTable;
                     }
-                        tableWithExamsScheduled = dicomserverconfig.ExamScheduledTable;
                     string sql = "SELECT * from " + tableWithExamsScheduled + " Where 1=1";
                     Utils_SQL.AddCondition(ref sql, rq[Keyword.PatientID], "PatientID");
                     Utils_SQL.AddNameCondition(ref sql, rq[Keyword.PatientName], "surname", "Forename");

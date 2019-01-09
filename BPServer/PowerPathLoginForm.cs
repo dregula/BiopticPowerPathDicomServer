@@ -5,11 +5,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.ComponentModel;
 using Common.Logging;
-using System.Threading.Tasks;
-
+using Microsoft.Win32;
 
 namespace BiopticPowerPathDicomServer
 {
@@ -305,6 +305,7 @@ namespace BiopticPowerPathDicomServer
             // 
             // PPLoginForm
             // 
+            this.AcceptButton = this.bntOK;
             this.AutoScaleBaseSize = new System.Drawing.Size(6, 15);
             this.ClientSize = new System.Drawing.Size(541, 418);
             this.Controls.Add(this.splitContainerLogin);
@@ -353,7 +354,7 @@ namespace BiopticPowerPathDicomServer
                 hasValidationError = false;
                 return;
             }
-            string strFeedbackFromTestPowerPathConnect = ConnectionHelpers.FeedbackFromTestDatabaseConnect(serverlogin);
+            string strFeedbackFromTestPowerPathConnect = FeedbackFromTestDatabaseConnect(serverlogin);
             if (strFeedbackFromTestPowerPathConnect.Length > 0)
             {
                 this.dsUserFeedback.Lines.Add(strFeedbackFromTestPowerPathConnect);
@@ -450,6 +451,61 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-     }
+        private string FeedbackFromTestDatabaseConnect(PowerPathLoginConfig serverlogin)
+        {
+            // ping first, as this is quicker
+            //CONSIDER: refactor ping and Sql-db-connect into two async methods and wait for whomever comes first.
+            if (false == PingHost(serverlogin.DataSource))
+            {
+                return "Server not found at: '" + serverlogin.DataSource + @"'!";
+            }
+            try
+            {
+                using (SqlConnection db = new SqlConnection(serverlogin.ConnectionString))
+                {
+                    db.Open();
+                    /* If we reached here, that means the connection to the database was successful. */
+                    return "";
+                }
+            }
+            catch (SqlException se)
+            {
+                // TODO: if server connected, but n = wrong database, then do something...
+                switch (se.Number)
+                {
+                    case 53:    // server unavailble
+                                //TODO: ping test?
+                        break;
+                    default:
+                        break;
+                }
+                string strSqlException = "Sql Error connecting to PowerPath"
+                    + " with connectionstring: '" + serverlogin.ConnectionString
+                    + " with error: " + se.Message;
+                //Log.Warn(strSqlException);
+                return strSqlException;
+            }
+            catch (Exception ex)
+            {
+                string strException = "Error connecting to PowerPath"
+                    + " with connectionstring: '" + serverlogin.ConnectionString
+                    + " with error: " + ex.Message;
+                //Log.Error(strException);
+                return strException;
+            }
+        }
+        // addapted from https://stackoverflow.com/questions/11800958/using-ping-in-c-sharp
+        public static bool PingHost(string nameOrAddress)
+        {
+            using (System.Net.NetworkInformation.Ping pinger = new System.Net.NetworkInformation.Ping())
+            {
+                System.Net.NetworkInformation.PingReply reply = pinger.Send(nameOrAddress);
+                return (reply.Status == System.Net.NetworkInformation.IPStatus.Success);
+
+
+            }
+        }
+
+    }
 }
 

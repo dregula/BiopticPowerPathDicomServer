@@ -5,34 +5,62 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.AccessControl;
 using Microsoft.Win32;
+using Common.Logging;
 
 namespace BiopticPowerPathDicomServer
 {
     interface DicomServerConfigurationInterface
     {
-        int Portnumber { get; set; }
-        string IpAddress { get; set; }
-        string IpAddressFamily { get; set; }
+        int Portnumber { get; }
+        string IpAddress { get; }
+        string IpAddressFamily { get;}
     }
 
     //TODO: ReImplement with backing variables and query the Registry ONCE!
     public partial class DicomServerConfiguration : DicomServerConfigurationInterface
     {
-        private RegistryKey rkDicomObject;
-        public DicomServerConfiguration()
+        private static ILog Log = LogManager.GetLogger("DicomServerConfiguration");
+
+        private RegistryKey rkbiopticvisionscp = null;
+        public RegistryKey RkBiopticVisionSCP
         {
-            RegistryRights rrBiopticVisionSCP = RegistryRights.EnumerateSubKeys | RegistryRights.QueryValues | RegistryRights.ReadKey;
-            using (RegistryKey rkCUHive = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
+            get
             {
-                rkDicomObject = rkCUHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP", rrBiopticVisionSCP);
-                if (rkDicomObject == null)
+                if(null== rkbiopticvisionscp)
                 {
-                    using (RegistryKey rkLKHive = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
+                    RegistryRights rrBiopticVisionSCP = RegistryRights.EnumerateSubKeys | RegistryRights.QueryValues | RegistryRights.ReadKey;
+                    using (RegistryKey rkCUHive = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default))
                     {
-                        rkDicomObject = rkLKHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP", rrBiopticVisionSCP);
+                        try
+                        {
+                            rkbiopticvisionscp = rkCUHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP", rrBiopticVisionSCP);
+                        }
+                        catch(Exception ex)
+                        {
+                            Log.Error("Failed to open BiopticVisionSCP configuration from Local Machine Registry: " + ex.Message);
+                        }
+                        if (rkbiopticvisionscp == null)
+                        {
+                            using (RegistryKey rkLKHive = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default))
+                            {
+                                try
+                                {
+                                    rkbiopticvisionscp = rkLKHive.OpenSubKey(@"Software\Stanford\BiopticVisionSCP", rrBiopticVisionSCP);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error("Failed to open BiopticVisionSCP configuration from Current User Registry: " + ex.Message);
+                                }
+                            }
+                        }
                     }
                 }
+                return rkbiopticvisionscp;
             }
+        }
+
+        public DicomServerConfiguration()
+        {
         }
 
         // DataDource:
@@ -40,14 +68,26 @@ namespace BiopticPowerPathDicomServer
         //      ExamScheduledTable:
         //          The table in the PowerPath database which contains the X-Ray order data
 
+        private string examscheduledtable;
         public string ExamScheduledTable
         {
             get
             {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"DataSource"))
+                if (null == examscheduledtable)
                 {
-                    return (string)rkDicomObjectPort.GetValue(@"ExamScheduledTable", "");
+                    using (RegistryKey rkBiopticVisionSCP = RkBiopticVisionSCP.OpenSubKey(@"DataSource"))
+                    {
+                        try
+                        {
+                            examscheduledtable = (string)rkBiopticVisionSCP.GetValue(@"ExamScheduledTable", "");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("Failed to open ExamScheduledTable value from BiopticVisionSCP configuration key: " + ex.Message);
+                        }
+                    }
                 }
+                return examscheduledtable;
             }
         }
 
@@ -62,64 +102,77 @@ namespace BiopticPowerPathDicomServer
         //
         //   AcceptTls:
 
+        private int portnumber = -1;
         public int Portnumber
         {
             get
             {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"Port"))
+                if (portnumber < 1022)
                 {
-                    string strPortnumberraw = rkDicomObjectPort.GetValue(@"", 0).ToString();
-                    int portnumber;
-                    if (false == Int32.TryParse(strPortnumberraw, out portnumber))
+                    using (RegistryKey rkDicomObjectPort = RkBiopticVisionSCP.OpenSubKey(@"Port"))
                     {
-                        //this.Log("Faled to convert portnomber registry string '" + strPortnumberraw + "' to an integer!");
-                        return -1;
+                        string strPortnumberraw = "";
+                        try
+                        {
+                            strPortnumberraw = rkDicomObjectPort.GetValue(@"", 0).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error("Failed to open Portnumber value from BiopticVisionSCP configuration key: " + ex.Message);
+                        }
+                        if (false == Int32.TryParse(strPortnumberraw, out portnumber))
+                        {
+                            Log.Error("Failed to convert portnomber registry string '" + strPortnumberraw + "' to an integer!");
+                        }
                     }
-                    return portnumber;
                 }
-            }
-            set
-            {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"Port"))
-                {
-                    rkDicomObjectPort.SetValue(@"", value);
-                }
+                return portnumber;
             }
         }
 
+        private string ipaddress= "";
         public string IpAddress
         {
             get
             {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"Port"))
+                if (ipaddress.Length < 8)
                 {
-                    return (string)rkDicomObjectPort.GetValue(@"Address", "");
+                    try
+                    {
+                        using (RegistryKey rkDicomObjectPort = RkBiopticVisionSCP.OpenSubKey(@"Port"))
+                        {
+                            ipaddress = (string)rkDicomObjectPort.GetValue(@"Address", "");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Failed to open IpAddress value from BiopticVisionSCP configuration key: " + ex.Message);
+                    }
                 }
+                return ipaddress;
             }
-            set
-            {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"Port"))
-                {
-                    rkDicomObjectPort.SetValue(@"Address", value);
-                }
-            }
-        }
+         }
 
+        private string ipaddressfamily = "";
         public string IpAddressFamily
         {
             get
             {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"Port"))
+                if (ipaddressfamily.Length < 2)
                 {
-                    return (string)rkDicomObjectPort.GetValue(@"IpAddressFamily", "");
+                    try
+                    {
+                        using (RegistryKey rkDicomObjectPort = RkBiopticVisionSCP.OpenSubKey(@"Port"))
+                        {
+                            ipaddressfamily = (string)rkDicomObjectPort.GetValue(@"IpAddressFamily", "");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Failed to open IpAddressFamily value from BiopticVisionSCP configuration key: " + ex.Message);
+                    }
                 }
-            }
-            set
-            {
-                using (RegistryKey rkDicomObjectPort = rkDicomObject.OpenSubKey(@"Port"))
-                {
-                    rkDicomObjectPort.SetValue(@"IpAddressFamily", value);
-                }
+                return ipaddressfamily;
             }
         }
     }

@@ -22,11 +22,19 @@ namespace BiopticPowerPathDicomServer
 
         private DicomServer MWL_Server = null;
 
+        private ApplicationContext appcontext;
+
+        public ApplicationContext appContext
+        {
+            get { return appcontext; }
+            set { appcontext = value; }
+        }
+
         ~BPServer()
         {
             if(null != MWL_Server)
             {
-                MWL_Server.Unlisten(dicomserverconfig.Portnumber, dicomserverconfig.IpAddress);
+                MWL_Server.UnlistenAll();
                 MWL_Server.Dispose();
                 MWL_Server = null;
             }
@@ -38,34 +46,16 @@ namespace BiopticPowerPathDicomServer
         }
 
         #region "Constructors"
-        //TODO: decide how to create and use the dbconnection to Powerpath
-        public BPServer(ApplicationContext appContext)
+        public BPServer(ApplicationContext AppContext)
         {
+            this.appcontext = AppContext;
             dicomserverconfig = new DicomServerConfiguration();
-            powerpathloginconfig = ConnectionHelpers.ServerLoginFromPowerPathRegistry();
+            powerpathloginconfig = new PowerPathLoginConfig();
             pploginform = new PPLoginForm(powerpathloginconfig);
             pploginform.Closing += new System.ComponentModel.CancelEventHandler(this.pploginform_Closing);
+            //note: Application.Run(pploginform) terminates when the form disposes
             pploginform.Show();
-            Application.Run(appContext);
-
-        }
-        public BPServer()
-        {
-            dicomserverconfig = new DicomServerConfiguration();
-            powerpathloginconfig = ConnectionHelpers.ServerLoginFromPowerPathRegistry();
-            pploginform = new PPLoginForm(powerpathloginconfig);
-            pploginform.Closing += new System.ComponentModel.CancelEventHandler(this.pploginform_Closing);
-            pploginform.Show();
-            Application.Run();
-        }   //MOCK: just to compile
-        public BPServer(DicomServerConfiguration serverConfig, PowerPathLoginConfig serverlogin)
-        {
-            this.dicomserverconfig = serverConfig ?? throw new ArgumentNullException(nameof(serverConfig));
-            serverlogin = serverlogin ?? throw new ArgumentNullException(nameof(serverlogin));
-            pploginform = new PPLoginForm(powerpathloginconfig);
-            pploginform.Closing += new System.ComponentModel.CancelEventHandler(this.pploginform_Closing);
-            pploginform.Show();
-            Application.Run();
+            Application.Run(AppContext);
         }
         #endregion
 
@@ -85,6 +75,12 @@ namespace BiopticPowerPathDicomServer
                 Application.Exit();
                 return;
             }
+            else
+            {
+                //drop messaging from form thread?
+                //this.appContext.ExitThread();
+            }
+
             this.RunServer();
         }
 
