@@ -11,7 +11,8 @@ namespace BiopticPowerPathDicomServer
 {
     public class PowerPathLoginConfig
     {
-        private static ILog Log = LogManager.GetLogger("PowerPathLoginConfig");
+        private static readonly ILog Log
+       = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private SqlConnectionStringBuilder builder;
         private List<string> listServers = new List<string>();

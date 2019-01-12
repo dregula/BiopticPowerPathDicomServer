@@ -22,8 +22,6 @@ namespace BiopticPowerPathDicomServer
             public const int InvalidQueryRoot = 0xC001;
         }
 
-        private static readonly log4net.ILog Tracelog = log4net.LogManager.GetLogger("BPServer");
-
         #region "DICOM Event Handlers"
         private void DicomGlobal_LogEvent(DicomObjects.EventArguments.LogEventArgs e)
         {
@@ -78,7 +76,7 @@ namespace BiopticPowerPathDicomServer
         private void MWL_Server_QueryReceived(object sender, QueryReceivedArgs e)
         {
             #region "Tracing all calls to Server"
-            Tracelog.Debug("MWL_Server_QueryReceived with QueryRoot: " + e.Root.ToString());
+            Log.Trace("MWL_Server_QueryReceived with QueryRoot: " + e.Root.ToString());
             #endregion
             #region "Abort if not an MWL query"
             if (e.Root != QueryRoot.ModalityWorklist)
@@ -249,7 +247,7 @@ namespace BiopticPowerPathDicomServer
             }
             catch (Exception ex)
             {
-                Log.Error("Error processing MWL rewuest -- " + ex.Message);
+                Log.Error("Error processing MWL request -- " + ex.Message);
                 status = StatusCodes.GeneralError; // Error, unable to process!
             }
             finally

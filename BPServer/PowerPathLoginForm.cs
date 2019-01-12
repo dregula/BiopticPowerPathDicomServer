@@ -15,7 +15,8 @@ namespace BiopticPowerPathDicomServer
 {
     public partial class PPLoginForm : Form, IBindableComponent
     {
-        private static ILog Log = LogManager.GetLogger("PPLoginForm");
+        private static readonly ILog Log
+       = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private PowerPathLoginConfig serverlogin;
         public PowerPathLoginConfig ServerLogin
@@ -357,12 +358,14 @@ namespace BiopticPowerPathDicomServer
             string strFeedbackFromTestPowerPathConnect = FeedbackFromTestDatabaseConnect(serverlogin);
             if (strFeedbackFromTestPowerPathConnect.Length > 0)
             {
+                Log.Trace(@"Attempt to Database-connect: " + strFeedbackFromTestPowerPathConnect);
                 this.dsUserFeedback.Lines.Add(strFeedbackFromTestPowerPathConnect);
                 serverlogin.ValidDbConnection = false;
             }
             else // sucessfully connected to db!
             {
                 serverlogin.ValidDbConnection = true;
+                Log.Trace(@"Successfully connected to PowerPath!");
                 this.dsUserFeedback.Lines.Add(@"Successfully connected to PowerPath!");
                 this.Close();
             }
@@ -459,11 +462,16 @@ namespace BiopticPowerPathDicomServer
             {
                 return "Server not found at: '" + serverlogin.DataSource + @"'!";
             }
+            else
+            {
+                Log.Trace(@"Ping succeeded to " + serverlogin.DataSource);
+            }
             try
             {
                 using (SqlConnection db = new SqlConnection(serverlogin.ConnectionString))
                 {
                     db.Open();
+                    Log.Trace(@"Successful test-connect to PowerPath database: " + db.Database);
                     /* If we reached here, that means the connection to the database was successful. */
                     return "";
                 }
