@@ -11,47 +11,48 @@ namespace BiopticPowerPathDicomServer
     [Table(Name = "dbo.ExamsScheduled")]
     public partial class ExamsScheduled
     {
-        private string _AccessionNumber;
+        private string _AccessionNumber;    // (080,050)
 
-        private string _PatientID;
+        private string _PatientID;          // (100,020)
 
-        private string _Surname;
+        private string _Surname;            // Patient name assemmbled into (100,010)
 
         private string _Forename;
 
         private string _Title;
 
-        private string _Sex;
+        private string _Sex;                // (100,040)
 
-        private System.Nullable<System.DateTime> _DateOfBirth;
+        private System.Nullable<System.DateTime> _DateOfBirth;  // (100,030)
 
-        private string _ReferringPhysician;
+        //note: referring and performing physician names are NOT ^encoded^
+        private string _ReferringPhysician; // (080,090)
 
-        private string _PerformingPhysician;
+        private string _PerformingPhysician; // (400,006)
 
-        private string _Modality;
+        private string _Modality;           // (80,060)
 
-        private System.Nullable<System.DateTime> _ExamDateAndTime;
+        private System.Nullable<System.DateTime> _ExamDateAndTime;  // (400,002); Scheduled Procedure Step Start Date
 
-        private string _ExamRoom;
+        private string _ExamRoom;           // (400,011) Scheduled Station Name (single: , 010 is array)
 
-        private string _ExamDescription;
+        private string _ExamDescription;    // (321,060); Requested Procedure Description ("Study Name")
 
-        private string _StudyUID;
+        private string _StudyUID;           // (0020,000D)
 
-        private string _ProcedureID;
+        private string _ProcedureID;        // (401,001); Requested Procedure ID ("Study ID")
 
-        private string _ProcedureStepID;
+        private string _ProcedureStepID;    // (400,009); Scheduled Procedure Step ID
 
-        private string _HospitalName;
+        private string _HospitalName;       // 
 
-        private string _ScheduledAET;
+        private string _ScheduledAET;       // (400,001); Scheduled Station AE Title
 
         public ExamsScheduled()
         {
         }
 
-        [Column(Storage = "_AccessionNumber", DbType = "NVarChar(50)")]
+        [Column(Storage = "_AccessionNumber", DbType = "NVarChar(16)")] //SH 
         public string AccessionNumber
         {
             get { return this._AccessionNumber; }
@@ -64,7 +65,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_PatientID", DbType = "NVarChar(50)")]
+        [Column(Storage = "_PatientID", DbType = "NVarChar(64)")]   //LO
         public string PatientID
         {
             get { return this._PatientID; }
@@ -116,7 +117,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_Sex", DbType = "NVarChar(50)")]
+        [Column(Storage = "_Sex", DbType = "NVarChar(50)")] //CS: 16chars
         public string Sex
         {
             get { return this._Sex; }
@@ -142,7 +143,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_ReferringPhysician", DbType = "NVarChar(50)")]
+        [Column(Storage = "_ReferringPhysician", DbType = "NVarChar(64)")]  //PN
         public string ReferringPhysician
         {
             get { return this._ReferringPhysician; }
@@ -155,7 +156,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_PerformingPhysician", DbType = "NVarChar(50)")]
+        [Column(Storage = "_PerformingPhysician", DbType = "NVarChar(64)")] //PN: 64chars (including five carets)
         public string PerformingPhysician
         {
             get { return this._PerformingPhysician; }
@@ -168,7 +169,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_Modality", DbType = "NVarChar(50)")]
+        [Column(Storage = "_Modality", DbType = "NVarChar(16)")]    //SH
         public string Modality
         {
             get { return this._Modality; }
@@ -194,7 +195,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_ExamRoom", DbType = "NVarChar(50)")]
+        [Column(Storage = "_ExamRoom", DbType = "NVarChar(16)")]    //SH
         public string ExamRoom
         {
             get { return this._ExamRoom; }
@@ -207,7 +208,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_ExamDescription", DbType = "NVarChar(50)")]
+        [Column(Storage = "_ExamDescription", DbType = "NVarChar(64)")] //LO: 64characters
         public string ExamDescription
         {
             get { return this._ExamDescription; }
@@ -220,7 +221,8 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_StudyUID", DbType = "NVarChar(65)")]
+        //TRY: 2019-01-12 use the specimen-id, coded for 2D-barcode as the StudyUID
+        [Column(Storage = "_StudyUID", DbType = "NVarChar(65)")]    //UI: 64 chars
         public string StudyUID
         {
             get { return this._StudyUID; }
@@ -233,7 +235,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_ProcedureID", DbType = "NVarChar(50)")]
+        [Column(Storage = "_ProcedureID", DbType = "NVarChar(16)")] //SH
         public string ProcedureID
         {
             get { return this._ProcedureID; }
@@ -246,7 +248,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_ProcedureStepID", DbType = "NVarChar(50)")]
+        [Column(Storage = "_ProcedureStepID", DbType = "NVarChar(16)")] //SH
         public string ProcedureStepID
         {
             get { return this._ProcedureStepID; }
@@ -259,7 +261,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_HospitalName", DbType = "NVarChar(50)")]
+        [Column(Storage = "_HospitalName", DbType = "NVarChar(64)")]    //?LO 64
         public string HospitalName
         {
             get { return this._HospitalName; }
@@ -272,7 +274,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        [Column(Storage = "_ScheduledAET", DbType = "NVarChar(50)")]
+        [Column(Storage = "_ScheduledAET", DbType = "NVarChar(16)")]    //SH: 16 characters
         public string ScheduledAET
         {
             get { return this._ScheduledAET; }

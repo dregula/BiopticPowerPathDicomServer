@@ -36,22 +36,17 @@ namespace BiopticPowerPathDicomServer
             cp.ValidDbConnection = this.ValidDbConnection;
             return cp;
         }
-        //TODO: reconcile Server property and ListServers property
-        public List<string> ListServers
-        {
-            get { return listServers; }
-            set { listServers = value; }
-        }
-        public List<string> ListDatabases
-        {
-            get { return listDatabases; }
-            set { listDatabases = value; }
-        }
-
+  
         public string ConnectionString
         {
             get { return builder.ConnectionString; }
             set { builder.ConnectionString = value; }
+        }
+        //TODO: reconcile Server property and ListServers property
+        public List<string> ListServers //datasource
+        {
+            get { return listServers; }
+            set { listServers = value; }
         }
         public string DataSource
         {
@@ -68,7 +63,12 @@ namespace BiopticPowerPathDicomServer
             get { return builder.Password; }
             set { builder.Password = value; }
         }
-        public string InitialCatalog
+        public List<string> ListDatabases
+        {
+            get { return listDatabases; }
+            set { listDatabases = value; }
+        }
+        public string InitialCatalog    //database
         {
             get { return builder.InitialCatalog; }
             set { builder.InitialCatalog = value; }
@@ -85,15 +85,7 @@ namespace BiopticPowerPathDicomServer
         }
         #endregion
 
-        #region "Constructors"
-        public ServerLogin()
-        {
-
-        }
-        public ServerLogin(string connectionString)
-        {
-            builder = new SqlConnectionStringBuilder(connectionString);
-        }
+        #region "Constructor"
         public ServerLogin(SqlConnectionStringBuilder Builder)
         {
             builder = new SqlConnectionStringBuilder(Builder.ConnectionString);

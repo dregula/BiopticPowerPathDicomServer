@@ -23,13 +23,6 @@ namespace BiopticPowerPathDicomServer
 
         private DicomServer MWL_Server = null;
 
-        //private ApplicationContext appcontext;
-        //public ApplicationContext appContext
-        //{
-        //    get { return appcontext; }
-        //    set { appcontext = value; }
-        //}
-
         ~BPServer()
         {
             if(null != MWL_Server)
@@ -45,10 +38,12 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        #region "Constructors"
+        #region "Constructor"
         public BPServer(ApplicationContext AppContext)
         {
-//TODO: either use AppContext or remove it            //this.appcontext = AppContext;
+            //TODO: either use AppContext or remove it
+            // https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.application.run
+            //this.appcontext = AppContext;
             dicomserverconfig = new DicomServerConfiguration();
             powerpathloginconfig = new PowerPathLoginConfig();
             pploginform = new PPLoginForm(powerpathloginconfig);
@@ -119,8 +114,7 @@ namespace BiopticPowerPathDicomServer
                     + " on interface:" + dicomserverconfig.IpAddress + ". " + ex.Message);
             }
 
-            //DicomObjects.DicomGlobal.LogEvent
-            //Put the following line back in to enable DicomObjects logging
+            //Put the following line back in to enable native DicomObjects logging
             //DicomObjects.DicomGlobal.LogToFile("dicom_log_files", 0x63);
 
             DicomGlobal.EventLogLevel = (DicomObjects.Enums.LogLevel)0x63;       //0x3F; //dec 63

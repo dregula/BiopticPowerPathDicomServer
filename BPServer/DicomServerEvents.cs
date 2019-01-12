@@ -140,7 +140,6 @@ namespace BiopticPowerPathDicomServer
 
                         // if only date is specified, then using standard matching
                         //but if both are specified, then MWL defines a combined match
-                        //TODO: decide whether we want to ever enable date matching
                         if (true)   //!DisableDateMatching.Checked)
                         {
                             if (rq1[Keyword.ScheduledProcedureStepStartDate].ExistsWithValue && rq1[Keyword.ScheduledProcedureStepStartTime].ExistsWithValue) // if both Date and Time are specified

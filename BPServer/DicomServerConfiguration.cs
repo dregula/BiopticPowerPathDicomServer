@@ -16,13 +16,12 @@ namespace BiopticPowerPathDicomServer
         string IpAddressFamily { get;}
     }
 
-    //TODO: ReImplement with backing variables and query the Registry ONCE!
-    public partial class DicomServerConfiguration : DicomServerConfigurationInterface
+     public partial class DicomServerConfiguration : DicomServerConfigurationInterface
     {
         private static readonly ILog Log
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        //note: always seek to open this key; you can't cache it's subkeys
+        //note: always seek to open this parent key; unless you cache it's subkeys
         public RegistryKey RkBiopticVisionSCP
         {
             get
@@ -67,7 +66,7 @@ namespace BiopticPowerPathDicomServer
         //      ExamScheduledTable:
         //          The table in the PowerPath database which contains the X-Ray order data
 
-        //note: ExamScheduledTable can be cached
+        //note: ExamScheduledTable string can be cached
         private string examscheduledtable;
         public string ExamScheduledTable
         {
@@ -102,7 +101,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        // Port:
+        // Port: (can be cached)
         //     The TCP port on which to receive connections
         //
         //   Address:
@@ -144,7 +143,7 @@ namespace BiopticPowerPathDicomServer
                         Log.Error(@"Failed to get a required registry key: " + ex.Message);
                     }
                 }
-                //DEBUG: 2019-01-11 just until Registry values are stabalized
+                //DEBUG: 2019-01-11 just until Registry values are stablized
                 if (portnumber < 1024)
                     portnumber =11112;
 
@@ -171,7 +170,7 @@ namespace BiopticPowerPathDicomServer
                         Log.Error("Failed to open IpAddress value from BiopticVisionSCP configuration key: " + ex.Message);
                     }
                 }
-                //DEBUG: 2019-01-11 just until Registry values are stabalized
+                //DEBUG: 2019-01-11 just until Registry values are stablized
                 if (null==ipaddress || ipaddress.Length < 4)
                     ipaddress = @"127.0.0.1";
 
@@ -198,7 +197,7 @@ namespace BiopticPowerPathDicomServer
                         Log.Error("Failed to open IpAddressFamily value from BiopticVisionSCP configuration key: " + ex.Message);
                     }
                 }
-                //DEBUG: 2019-01-11 just until Registry values are stabalized
+                //DEBUG: 2019-01-11 just until Registry values are stablized
                 if (null == ipaddressfamily || ipaddressfamily.Length < 4)
                     ipaddressfamily = @"IPv4";
 

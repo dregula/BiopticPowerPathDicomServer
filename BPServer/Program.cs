@@ -28,7 +28,6 @@ namespace BiopticPowerPathDicomServer
             ApplicationContext appContext = new ApplicationContext();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(appContext);
             BPServer bpserver = new BPServer(appContext);
             Console.ReadKey(true);
         }
