@@ -9,7 +9,7 @@ using Common.Logging;
 
 namespace BiopticPowerPathDicomServer
 {
-    public class PowerPathLoginConfig
+    public class PowerPathConfiguration
     {
         private static readonly ILog Log
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -19,7 +19,7 @@ namespace BiopticPowerPathDicomServer
         private List<string> listDatabases = new List<string>();
 
         #region "Constructors"
-        public PowerPathLoginConfig()
+        public PowerPathConfiguration()
         {
             validdbconnection = false;
         }
@@ -53,9 +53,9 @@ namespace BiopticPowerPathDicomServer
             }
             set { builder = value; }
         }
-        public PowerPathLoginConfig Copy()
+        public PowerPathConfiguration Copy()
         {
-            PowerPathLoginConfig cp = new PowerPathLoginConfig();
+            PowerPathConfiguration cp = new PowerPathConfiguration();
             cp.Builder = this.Builder;
             cp.ListDatabases = new List<string>(listDatabases);
             cp.ListServers = new List<string>(listServers);

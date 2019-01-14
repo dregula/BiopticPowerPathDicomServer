@@ -7,7 +7,7 @@ using System.Data.SqlClient;
 
 namespace BiopticPowerPathDicomServer
 {
-    public class ServerLogin
+    public class SqlLoginData
     {
         private SqlConnectionStringBuilder builder;
         private List<string> listServers = new List<string>();
@@ -21,16 +21,14 @@ namespace BiopticPowerPathDicomServer
             set { validdbconnection =value; }
         }
 
-
-
         public SqlConnectionStringBuilder Builder
         {
             get { return builder; }
             set { builder = value; }
         }
-        public ServerLogin Copy()
+        public SqlLoginData Copy()
         {
-            ServerLogin cp = new ServerLogin(builder);
+            SqlLoginData cp = new SqlLoginData(builder);
             cp.ListDatabases = new List<string>(listDatabases);
             cp.ListServers = new List<string>(listServers);
             cp.ValidDbConnection = this.ValidDbConnection;
@@ -86,7 +84,7 @@ namespace BiopticPowerPathDicomServer
         #endregion
 
         #region "Constructor"
-        public ServerLogin(SqlConnectionStringBuilder Builder)
+        public SqlLoginData(SqlConnectionStringBuilder Builder)
         {
             builder = new SqlConnectionStringBuilder(Builder.ConnectionString);
         }

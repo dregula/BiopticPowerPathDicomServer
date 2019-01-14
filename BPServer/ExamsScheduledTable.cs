@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace BiopticPowerPathDicomServer
 {
     [Table(Name = "dbo.ExamsScheduled")]
-    public partial class ExamsScheduled
+    public partial class ExamsScheduledTable
     {
         private string _AccessionNumber;    // (080,050)
 
@@ -48,7 +48,7 @@ namespace BiopticPowerPathDicomServer
 
         private string _ScheduledAET;       // (400,001); Scheduled Station AE Title
 
-        public ExamsScheduled()
+        public ExamsScheduledTable()
         {
         }
 

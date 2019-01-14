@@ -11,6 +11,8 @@ namespace BiopticPowerPathDicomServer
 {
     interface DicomServerConfigurationInterface
     {
+        string AETitle { get; }
+        string ExamScheduledTable { get; }
         int Portnumber { get; }
         string IpAddress { get; }
         string IpAddressFamily { get;}
@@ -61,7 +63,47 @@ namespace BiopticPowerPathDicomServer
         {
         }
 
-        // DataDource:
+        // ApplicationEntity subkey: (may be cached)
+        //  Values specific to this dicom-server's presentation as an Application Entity
+        //      AETitle: The advertised Application Entity Title for this Dicom server
+
+        private string aetitle;
+
+        public string AETitle
+        {
+            get
+            {
+                if (null == aetitle)
+                {
+                    try
+                    {
+                        using (RegistryKey rkBiopticVisionSCPDataSource = RkBiopticVisionSCP.OpenSubKey(@"ApplicationEntity"))
+                        {
+                            try
+                            {
+                                aetitle = (string)rkBiopticVisionSCPDataSource.GetValue(@"AETitle", "");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error("Failed to open AETitle value from BiopticVisionSCP configuration key: " + ex.Message);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Fatal("Could not open required registry key: " + ex.Message);
+                    }
+                }
+                //DEBUG: 2019-01-11 just until Registry values are stabalized
+                if (null == aetitle || aetitle.Length < 4)
+                    aetitle = @"MWL_SCP";
+                return aetitle;
+            }
+        }
+
+
+
+        // DataSource subkey: (can be cached)
         //  Values specific to connecting to data in the source (PowerPath)
         //      ExamScheduledTable:
         //          The table in the PowerPath database which contains the X-Ray order data
@@ -101,7 +143,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        // Port: (can be cached)
+        // Port subkey: (can be cached)
         //     The TCP port on which to receive connections
         //
         //   Address:

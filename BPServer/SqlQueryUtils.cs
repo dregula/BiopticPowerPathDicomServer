@@ -6,7 +6,7 @@ using DicomObjects;
 
 namespace BiopticPowerPathDicomServer
 {
-    internal static class Utils_SQL
+    internal static class SqlQueryUtils
     {
         internal static void AddResultItem(DicomDataSet DataSet, DicomDataSet request, int group, int element, object v)
         {
@@ -84,11 +84,14 @@ namespace BiopticPowerPathDicomServer
                 if (condition.Value.ToString().IndexOf("-", StringComparison.Ordinal) == -1) // if Single Date
                 {
                     DateTime t = condition.DateTimeTo;
-                    t = t.Add(new TimeSpan(23, 59, 59));
+                    //note: a single day span is less useful than the provided date to now for our specimen X_rays
+                    t = DateTime.Now;   //  t.Add(new TimeSpan(23, 59, 59));
                     AddSingleDateCondition(ref query, t, "<=", dbname);
                 }
                 else
+                {
                     AddSingleDateCondition(ref query, condition.DateTimeTo, "<=", dbname);
+                }
 
                 AddSingleDateCondition(ref query, condition.DateTimeFrom, ">=", dbname);
             }

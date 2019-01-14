@@ -18,8 +18,8 @@ namespace BiopticPowerPathDicomServer
         private static readonly ILog Log
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private PowerPathLoginConfig serverlogin;
-        public PowerPathLoginConfig ServerLogin
+        private PowerPathConfiguration serverlogin;
+        public PowerPathConfiguration ServerLogin
         {
             get
             {
@@ -59,7 +59,7 @@ namespace BiopticPowerPathDicomServer
         /// 
         /// </summary>
         /// <param name="Builder"></param>
-        public PPLoginForm(PowerPathLoginConfig serverLogin)
+        public PPLoginForm(PowerPathConfiguration serverLogin)
         {
             this.serverlogin = serverLogin.Copy();
             InitializeComponent();
@@ -70,11 +70,11 @@ namespace BiopticPowerPathDicomServer
         {
             // note: a List can serve as a datasource, but the individual builder object cannot
             this.cbServer.DataSource = serverlogin.ListServers;
-            this.cbServer.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "DataSource"));
-            this.tbUserNameInput.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "UserID"));
-            this.tbPasswordInput.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "Password"));
+            this.cbServer.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "DataSource"));
+            this.tbUserNameInput.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "UserID"));
+            this.tbPasswordInput.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "Password"));
             this.cbServer.DataSource = serverlogin.ListDatabases;
-            this.cbDatabase.DataBindings.Add(new Binding("Text", new List<PowerPathLoginConfig> { serverlogin }, "InitialCatalog"));
+            this.cbDatabase.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "InitialCatalog"));
             this.tbFeedback.DataBindings.Add("Lines", dsUserFeedback, "LinesArray");
         }
 
@@ -454,7 +454,7 @@ namespace BiopticPowerPathDicomServer
             }
         }
 
-        private string FeedbackFromTestDatabaseConnect(PowerPathLoginConfig serverlogin)
+        private string FeedbackFromTestDatabaseConnect(PowerPathConfiguration serverlogin)
         {
             // ping first, as this is quicker
             //CONSIDER: refactor ping and Sql-db-connect into two async methods and wait for whomever comes first.

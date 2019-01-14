@@ -18,7 +18,7 @@ namespace BiopticPowerPathDicomServer
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private DicomServerConfiguration dicomserverconfig;
-        private PowerPathLoginConfig powerpathloginconfig;
+        private PowerPathConfiguration powerpathloginconfig;
         private PPLoginForm pploginform;
 
         private DicomServer MWL_Server = null;
@@ -45,7 +45,7 @@ namespace BiopticPowerPathDicomServer
             // https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.application.run
             //this.appcontext = AppContext;
             dicomserverconfig = new DicomServerConfiguration();
-            powerpathloginconfig = new PowerPathLoginConfig();
+            powerpathloginconfig = new PowerPathConfiguration();
             pploginform = new PPLoginForm(powerpathloginconfig);
             pploginform.Closing += new System.ComponentModel.CancelEventHandler(this.pploginform_Closing);
             //note: Application.Run(pploginform) terminates when the form disposes
