@@ -13,7 +13,14 @@ using Microsoft.Win32;
 
 namespace BiopticPowerPathDicomServer
 {
-    public partial class PPLoginForm : Form, IBindableComponent
+    //TODO: Refactor to include a testable View
+    public interface IPPLoginFormView
+    {
+        PowerPathConfiguration ServerLogin { get; }
+        string ConnectionString { get; }
+    }
+
+    public partial class PPLoginForm : Form, IBindableComponent, IPPLoginFormView
     {
         private static readonly ILog Log
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

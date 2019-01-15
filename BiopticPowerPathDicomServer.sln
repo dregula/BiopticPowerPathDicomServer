@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BPServer", "BPServer\BPServer.csproj", "{29271FA9-32D5-40E1-B99C-AF4A849B7AC2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BPServerUnitTest", "BPServerUnitTest\BPServerUnitTest.csproj", "{0785BA69-5C8B-49FF-8600-53BFD9A537EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{29271FA9-32D5-40E1-B99C-AF4A849B7AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29271FA9-32D5-40E1-B99C-AF4A849B7AC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29271FA9-32D5-40E1-B99C-AF4A849B7AC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0785BA69-5C8B-49FF-8600-53BFD9A537EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0785BA69-5C8B-49FF-8600-53BFD9A537EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0785BA69-5C8B-49FF-8600-53BFD9A537EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0785BA69-5C8B-49FF-8600-53BFD9A537EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
