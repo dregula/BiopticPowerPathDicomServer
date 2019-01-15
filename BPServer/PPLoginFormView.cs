@@ -13,27 +13,53 @@ using Microsoft.Win32;
 
 namespace BiopticPowerPathDicomServer
 {
-    public partial class PPLoginForm : Form, IBindableComponent
+    // View
+    public partial class PPLoginFormView : Form, IBindableComponent
     {
         private static readonly ILog Log
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private PowerPathConfiguration serverlogin;
-        public PowerPathConfiguration ServerLogin
+        public PPLoginFormView()
         {
-            get
+            PowerPathConfigurationPresenter presenter = new PowerPathConfigurationPresenter(this);
+            InitializeComponent();
+            //TODO: disconnect existing OnLoad event
+            this.Load += (s, e) => OnViewLoad(); // event delegate shorthand notation
+            this.bntOK.Click += (s, e) => OnValidateDbConnection();
+            this.btnQuit.Click += (s, e) => OnQuit();
+        }
+
+        public PPLoginFormView(PowerPathConfigurationViewModel serverLogin)
+        {
+            PowerPathConfigurationPresenter presenter = new PowerPathConfigurationPresenter(this);
+            this.serverlogin = serverLogin.CopyPowerPathConfiguration();
+            InitializeComponent();
+//this.Load += (s, e) => OnViewLoadConfig(serverLogin);
+            this.bntOK.Click += (s, e) => OnValidateDbConnection();
+            this.btnQuit.Click += (s, e) => OnQuit();
+        }
+
+        public event Action OnViewLoad;
+//public event Action OnViewLoadConfig(PowerPathConfigurationMVP);
+        public event Action OnValidateDbConnection;
+        public event Action OnQuit;
+
+        public PowerPathConfigurationViewModel serverlogin
+        {
+            set
             {
-                return serverlogin.Copy();
+                // note: a List can serve as a datasource, but the individual builder object cannot
+                this.cbServer.DataBindings.Add(new Binding("Items", value, "ListServers", true, DataSourceUpdateMode.OnPropertyChanged, string.Empty));
+                //this.cbServer.DataSource = serverlogin.ListServers;
+                this.cbServer.DataBindings.Add(new Binding("Text", value, "DataSource", true, DataSourceUpdateMode.OnPropertyChanged, string.Empty));
+                this.tbUserNameInput.DataBindings.Add(new Binding("Text", value, "UserID", true, DataSourceUpdateMode.OnPropertyChanged, string.Empty));
+                this.tbPasswordInput.DataBindings.Add(new Binding("Text", value, "Password", true, DataSourceUpdateMode.OnPropertyChanged, string.Empty));
+                this.cbServer.DataBindings.Add(new Binding("Items", value, "ListDatabases", true, DataSourceUpdateMode.OnPropertyChanged, string.Empty));
+                //this.cbServer.DataSource = serverlogin.ListDatabases;
+                this.cbDatabase.DataBindings.Add(new Binding("Text", value, "InitialCatalog", true, DataSourceUpdateMode.OnPropertyChanged, string.Empty));
             }
         }
-
-        public string ConnectionString
-        {
-            get { return serverlogin.ConnectionString; }
-        }
-
         private IContainer components;
-        LinesDataSource dsUserFeedback = new LinesDataSource();
         private bool hasValidationError = false;
 
         #region "Component variables (leave alone!)"
@@ -48,35 +74,10 @@ namespace BiopticPowerPathDicomServer
         private TextBox tbPasswordInput;
         public Button bntOK;
         private Button btnQuit;
-        private TextBox tbFeedback;
-        private SplitContainer splitContainerLogin;
         private ErrorProvider errorProviderPPForm;
         private TextBox tbUserNameInput;
 
         #endregion
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Builder"></param>
-        public PPLoginForm(PowerPathConfiguration serverLogin)
-        {
-            this.serverlogin = serverLogin.Copy();
-            InitializeComponent();
-            BindControls();
-        }
-
-        private void BindControls()
-        {
-            // note: a List can serve as a datasource, but the individual builder object cannot
-            this.cbServer.DataSource = serverlogin.ListServers;
-            this.cbServer.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "DataSource"));
-            this.tbUserNameInput.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "UserID"));
-            this.tbPasswordInput.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "Password"));
-            this.cbServer.DataSource = serverlogin.ListDatabases;
-            this.cbDatabase.DataBindings.Add(new Binding("Text", new List<PowerPathConfiguration> { serverlogin }, "InitialCatalog"));
-            this.tbFeedback.DataBindings.Add("Lines", dsUserFeedback, "LinesArray");
-        }
 
         #region "Disposal"
         /// <summary>
@@ -115,19 +116,14 @@ namespace BiopticPowerPathDicomServer
             this.tbDatabase = new System.Windows.Forms.TextBox();
             this.tbUsername = new System.Windows.Forms.TextBox();
             this.tbServer = new System.Windows.Forms.TextBox();
-            this.tbFeedback = new System.Windows.Forms.TextBox();
-            this.splitContainerLogin = new System.Windows.Forms.SplitContainer();
             this.errorProviderPPForm = new System.Windows.Forms.ErrorProvider(this.components);
             this.gbLogon.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerLogin)).BeginInit();
-            this.splitContainerLogin.Panel1.SuspendLayout();
-            this.splitContainerLogin.Panel2.SuspendLayout();
-            this.splitContainerLogin.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProviderPPForm)).BeginInit();
             this.SuspendLayout();
             // 
             // tbPreamble
             // 
+            this.tbPreamble.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.tbPreamble.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tbPreamble.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tbPreamble.Location = new System.Drawing.Point(4, 0);
@@ -155,7 +151,7 @@ namespace BiopticPowerPathDicomServer
             this.gbLogon.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gbLogon.Location = new System.Drawing.Point(0, 0);
             this.gbLogon.Name = "gbLogon";
-            this.gbLogon.Size = new System.Drawing.Size(541, 295);
+            this.gbLogon.Size = new System.Drawing.Size(541, 296);
             this.gbLogon.TabIndex = 17;
             this.gbLogon.TabStop = false;
             // 
@@ -168,7 +164,6 @@ namespace BiopticPowerPathDicomServer
             this.bntOK.TabIndex = 26;
             this.bntOK.Text = "OK";
             this.bntOK.UseVisualStyleBackColor = true;
-            this.bntOK.Click += new System.EventHandler(this.bntOK_Click);
             // 
             // btnQuit
             // 
@@ -269,58 +264,22 @@ namespace BiopticPowerPathDicomServer
             this.tbServer.TabStop = false;
             this.tbServer.Text = "Server:";
             // 
-            // tbFeedback
-            // 
-            this.tbFeedback.CausesValidation = false;
-            this.tbFeedback.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbFeedback.Location = new System.Drawing.Point(0, 0);
-            this.tbFeedback.Multiline = true;
-            this.tbFeedback.Name = "tbFeedback";
-            this.tbFeedback.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.tbFeedback.Size = new System.Drawing.Size(541, 119);
-            this.tbFeedback.TabIndex = 19;
-            this.tbFeedback.TabStop = false;
-            // 
-            // splitContainerLogin
-            // 
-            this.splitContainerLogin.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainerLogin.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            this.splitContainerLogin.Location = new System.Drawing.Point(0, 0);
-            this.splitContainerLogin.Name = "splitContainerLogin";
-            this.splitContainerLogin.Orientation = System.Windows.Forms.Orientation.Horizontal;
-            // 
-            // splitContainerLogin.Panel1
-            // 
-            this.splitContainerLogin.Panel1.Controls.Add(this.gbLogon);
-            // 
-            // splitContainerLogin.Panel2
-            // 
-            this.splitContainerLogin.Panel2.Controls.Add(this.tbFeedback);
-            this.splitContainerLogin.Size = new System.Drawing.Size(541, 418);
-            this.splitContainerLogin.SplitterDistance = 295;
-            this.splitContainerLogin.TabIndex = 18;
-            // 
             // errorProviderPPForm
             // 
             this.errorProviderPPForm.ContainerControl = this;
             // 
-            // PPLoginForm
+            // PPLoginFormView
             // 
             this.AcceptButton = this.bntOK;
             this.AutoScaleBaseSize = new System.Drawing.Size(6, 15);
-            this.ClientSize = new System.Drawing.Size(541, 418);
-            this.Controls.Add(this.splitContainerLogin);
-            this.Name = "PPLoginForm";
+            this.ClientSize = new System.Drawing.Size(541, 296);
+            this.Controls.Add(this.gbLogon);
+            this.Name = "PPLoginFormView";
             this.Text = "PowerPath Login";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.PPLoginForm_Closing);
             this.Load += new System.EventHandler(this.PPLoginForm_Load);
             this.gbLogon.ResumeLayout(false);
             this.gbLogon.PerformLayout();
-            this.splitContainerLogin.Panel1.ResumeLayout(false);
-            this.splitContainerLogin.Panel2.ResumeLayout(false);
-            this.splitContainerLogin.Panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainerLogin)).EndInit();
-            this.splitContainerLogin.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.errorProviderPPForm)).EndInit();
             this.ResumeLayout(false);
 
@@ -346,31 +305,8 @@ namespace BiopticPowerPathDicomServer
             this.Close();
         }
 
-        private void bntOK_Click(object sender, EventArgs e)
-        {
-            hasValidationError = false;
-            bool validated = this.ValidateChildren(ValidationConstraints.TabStop);
-            if (true == hasValidationError)
-            {
-                hasValidationError = false;
-                return;
-            }
-            string strFeedbackFromTestPowerPathConnect = FeedbackFromTestDatabaseConnect(serverlogin);
-            if (strFeedbackFromTestPowerPathConnect.Length > 0)
-            {
-                Log.Trace(@"Attempt to Database-connect: " + strFeedbackFromTestPowerPathConnect);
-                this.dsUserFeedback.Lines.Add(strFeedbackFromTestPowerPathConnect);
-                serverlogin.ValidDbConnection = false;
-            }
-            else // sucessfully connected to db!
-            {
-                serverlogin.ValidDbConnection = true;
-                Log.Trace(@"Successfully connected to PowerPath!");
-                this.dsUserFeedback.Lines.Add(@"Successfully connected to PowerPath!");
-                this.Close();
-            }
-        }
-
+        //TODO: move these methods to Model
+        #region "Move to Model"
         private void cbServer_Validating(object sender, CancelEventArgs e)
         {
             ComboBox cb =(ComboBox)sender;
@@ -384,7 +320,6 @@ namespace BiopticPowerPathDicomServer
                 errorProviderPPForm.SetError(cb, "A Server name or IP address must be provided!");
             }
          }
-
         private void tbUserNameInput_Validating(object sender, CancelEventArgs e)
         {
             TextBox tb = (TextBox)sender;
@@ -398,7 +333,6 @@ namespace BiopticPowerPathDicomServer
                 errorProviderPPForm.SetError(tb, "A valid User name must be provided!");
             }
         }
-
         private void tbPasswordInput_Validating(object sender, CancelEventArgs e)
         {
             TextBox tb = (TextBox)sender;
@@ -412,7 +346,6 @@ namespace BiopticPowerPathDicomServer
                 errorProviderPPForm.SetError(tb, "A valid Password must be provided!");
             }
         }
-
         private void cbDatabase_Validating(object sender, CancelEventArgs e)
         {
             ComboBox cb = (ComboBox)sender;
@@ -426,94 +359,7 @@ namespace BiopticPowerPathDicomServer
                 errorProviderPPForm.SetError(cb, "A PowerPath database must be provided!");
             }
         }
-
-        // https://stackoverflow.com/questions/23321567/how-to-bind-textbox-lines-to-bindingliststring-in-winforms-in-c
-        private class LinesDataSource : INotifyPropertyChanged
-        {
-            private BindingList<string> lines = new BindingList<string>();
-            public LinesDataSource()
-            {
-                lines.ListChanged += (sender, e) => OnPropertyChanged("LinesArray");
-            }
-            public BindingList<string> Lines
-            {
-                get { return lines; }
-            }
-            public string[] LinesArray
-            {
-                get
-                {
-                    return lines.ToArray();
-                }
-            }
-            public event PropertyChangedEventHandler PropertyChanged;
-            protected virtual void OnPropertyChanged(string propertyName)
-            {
-                PropertyChangedEventHandler handler = PropertyChanged;
-                if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-
-        private string FeedbackFromTestDatabaseConnect(PowerPathConfiguration serverlogin)
-        {
-            // ping first, as this is quicker
-            //CONSIDER: refactor ping and Sql-db-connect into two async methods and wait for whomever comes first.
-            if (false == PingHost(serverlogin.DataSource))
-            {
-                return "Server not found at: '" + serverlogin.DataSource + @"'!";
-            }
-            else
-            {
-                Log.Trace(@"Ping succeeded to " + serverlogin.DataSource);
-            }
-            try
-            {
-                using (SqlConnection db = new SqlConnection(serverlogin.ConnectionString))
-                {
-                    db.Open();
-                    Log.Trace(@"Successful test-connect to PowerPath database: " + db.Database);
-                    /* If we reached here, that means the connection to the database was successful. */
-                    return "";
-                }
-            }
-            catch (SqlException se)
-            {
-                // TODO: if server connected, but n = wrong database, then do something...
-                switch (se.Number)
-                {
-                    case 53:    // server unavailble
-                                //TODO: ping test?
-                        break;
-                    default:
-                        break;
-                }
-                string strSqlException = "Sql Error connecting to PowerPath"
-                    + " with connectionstring: '" + serverlogin.ConnectionString
-                    + " with error: " + se.Message;
-                //Log.Warn(strSqlException);
-                return strSqlException;
-            }
-            catch (Exception ex)
-            {
-                string strException = "Error connecting to PowerPath"
-                    + " with connectionstring: '" + serverlogin.ConnectionString
-                    + " with error: " + ex.Message;
-                //Log.Error(strException);
-                return strException;
-            }
-        }
-        // addapted from https://stackoverflow.com/questions/11800958/using-ping-in-c-sharp
-        public static bool PingHost(string nameOrAddress)
-        {
-            using (System.Net.NetworkInformation.Ping pinger = new System.Net.NetworkInformation.Ping())
-            {
-                System.Net.NetworkInformation.PingReply reply = pinger.Send(nameOrAddress);
-                return (reply.Status == System.Net.NetworkInformation.IPStatus.Success);
-
-
-            }
-        }
-
+        #endregion
     }
 }
 

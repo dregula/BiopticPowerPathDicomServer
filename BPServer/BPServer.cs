@@ -18,8 +18,8 @@ namespace BiopticPowerPathDicomServer
        = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private DicomServerConfiguration dicomserverconfig;
-        private PowerPathConfiguration powerpathloginconfig;
-        private PPLoginForm pploginform;
+        private PowerPathConfigurationViewModel powerpathloginconfig;
+        private PPLoginFormView PPLoginFormView;
 
         private DicomServer MWL_Server = null;
 
@@ -31,10 +31,10 @@ namespace BiopticPowerPathDicomServer
                 MWL_Server.Dispose();
                 MWL_Server = null;
             }
-            if(null != pploginform && !pploginform.IsDisposed)
+            if(null != PPLoginFormView && !PPLoginFormView.IsDisposed)
             {
-                pploginform.Dispose();
-                pploginform = null;
+                PPLoginFormView.Dispose();
+                PPLoginFormView = null;
             }
         }
 
@@ -45,11 +45,11 @@ namespace BiopticPowerPathDicomServer
             // https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.application.run
             //this.appcontext = AppContext;
             dicomserverconfig = new DicomServerConfiguration();
-            powerpathloginconfig = new PowerPathConfiguration();
-            pploginform = new PPLoginForm(powerpathloginconfig);
-            pploginform.Closing += new System.ComponentModel.CancelEventHandler(this.pploginform_Closing);
-            //note: Application.Run(pploginform) terminates when the form disposes
-            pploginform.Show();
+            powerpathloginconfig = new PowerPathConfigurationViewModel();
+            PPLoginFormView = new PPLoginFormView(powerpathloginconfig);
+            PPLoginFormView.Closing += new System.ComponentModel.CancelEventHandler(this.PPLoginFormView_Closing);
+            //note: Application.Run(PPLoginFormView) terminates when the form disposes
+            PPLoginFormView.Show();
             Application.Run(AppContext);
         }
         #endregion
@@ -59,10 +59,11 @@ namespace BiopticPowerPathDicomServer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void pploginform_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void PPLoginFormView_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            PPLoginForm ppform = (PPLoginForm)sender;
-            powerpathloginconfig = ppform.ServerLogin.Copy();
+            PPLoginFormView ppform = (PPLoginFormView)sender;
+            //TODO: the following needs to be obtained from the model
+            //powerpathloginconfig = ppform.serverlogin.Copy();
             if(false == powerpathloginconfig.ValidDbConnection)
             {
                 Log.Fatal("Failed to get a valid connection to PowerPath.");
