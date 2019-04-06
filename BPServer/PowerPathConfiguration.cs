@@ -48,6 +48,10 @@ namespace BiopticPowerPathDicomServer
                 {
                     builder = new SqlConnectionStringBuilder();
                     InitializeFromPowerPathRegistry();
+                    //TRY: 2019-04-06
+                    builder.ApplicationName = @"PowerPath Client";
+                    builder.WorkstationID = Environment.MachineName + @"/" + Environment.UserName;
+                    //2019-04-06:  Connecting to a mirrored SQL Server instance using the ApplicationIntent ReadOnly connection option is not supported.   .ApplicationIntent = ApplicationIntent.ReadOnly;
                 }
                 return builder;
             }

@@ -71,11 +71,32 @@ namespace BiopticPowerPathDicomServer
             get { return builder.InitialCatalog; }
             set { builder.InitialCatalog = value; }
         }
-        public string WorkstationID
-        {
-            get { return builder.WorkstationID; }
-            set { builder.WorkstationID = value; }
-        }
+        //public string ApplicationName
+        //{
+        //    get {
+        //            if(builder.ApplicationName.Length<1)
+        //            {
+        //                builder.ApplicationName = @"PowerPath Client";
+        //            }
+        //            return builder.ApplicationName;
+        //    }
+        //    set { builder.ApplicationName = value; }
+        //}
+        //public ApplicationIntent ApplicationIntent
+        //{
+        //    get { return ApplicationIntent.ReadOnly; }
+        //}
+        //public string WorkstationID
+        //{
+        //    get {
+        //        if (builder.WorkstationID.Length < 1)
+        //        {
+        //            builder.WorkstationID = Environment.MachineName + @"/" + Environment.UserName;
+        //        }
+        //            return builder.WorkstationID;
+        //    }
+        //    set { builder.WorkstationID = value; }
+        //}
         public bool IntegratedSecurity
         {
             get { return builder.IntegratedSecurity; }
